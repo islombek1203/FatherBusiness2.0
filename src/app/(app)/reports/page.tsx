@@ -22,8 +22,12 @@ export default async function ReportsPage({
   const t = await getTranslations("reports");
 
   const defaultRange = getBusinessMonthRange();
-  const rangeStart = from ? new Date(`${from}T00:00:00+05:00`) : defaultRange.start;
-  const rangeEnd = to ? new Date(`${to}T24:00:00+05:00`) : defaultRange.end;
+  const parsedStart = from ? new Date(`${from}T00:00:00+05:00`) : null;
+  const parsedEnd = to ? new Date(`${to}T24:00:00+05:00`) : null;
+  // Fall back to the default range on a malformed ?from=/?to= rather than
+  // handing Prisma an Invalid Date (which would surface as a 500 page).
+  const rangeStart = parsedStart && !Number.isNaN(parsedStart.getTime()) ? parsedStart : defaultRange.start;
+  const rangeEnd = parsedEnd && !Number.isNaN(parsedEnd.getTime()) ? parsedEnd : defaultRange.end;
 
   const [items, categories] = await Promise.all([
     prisma.saleItem.findMany({

@@ -45,6 +45,8 @@ cp .env.example .env   # set real DOMAIN, POSTGRES_PASSWORD, AUTH_SECRET
 docker compose up --build -d
 ```
 
-See [`docs/`](./docs) for the full installation guide, deployment guide,
-backup/restore procedure, and user/admin manuals (added in the hardening
-phase — see PLAN.md).
+See [`docs/`](./docs) for the full [installation guide](./docs/installation.md),
+[deployment guide](./docs/deployment.md), [production checklist](./docs/production-checklist.md),
+[backup/restore procedure](./docs/backup-restore.md),
+[user manual](./docs/user-manual.md), [admin manual](./docs/admin-manual.md),
+and [architecture overview](./docs/architecture.md).

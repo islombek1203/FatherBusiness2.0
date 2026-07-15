@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Plus, Search, Upload } from "lucide-react";
+import { Pencil, Plus, Power, PowerOff, Search, Upload } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
@@ -136,8 +136,14 @@ export default async function ProductsPage({
                   <div className="flex flex-wrap justify-end gap-2">
                     {canWrite && <AdjustStockDialog productId={product.id} currentStock={product.currentStock} />}
                     {canWrite && (
-                      <Button variant="ghost" size="sm" render={<Link href={`/products/${product.id}/edit`} />}>
-                        {tCommon("edit")}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        aria-label={tCommon("edit")}
+                        render={<Link href={`/products/${product.id}/edit`} />}
+                      >
+                        <Pencil />
+                        <span className="hidden sm:inline">{tCommon("edit")}</span>
                       </Button>
                     )}
                     {canWrite && (
@@ -147,8 +153,16 @@ export default async function ProductsPage({
                           await setProductActive(product.id, !product.isActive);
                         }}
                       >
-                        <Button variant="ghost" size="sm" type="submit">
-                          {product.isActive ? tCommon("deactivate") : tCommon("activate")}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          type="submit"
+                          aria-label={product.isActive ? tCommon("deactivate") : tCommon("activate")}
+                        >
+                          {product.isActive ? <PowerOff /> : <Power />}
+                          <span className="hidden sm:inline">
+                            {product.isActive ? tCommon("deactivate") : tCommon("activate")}
+                          </span>
                         </Button>
                       </form>
                     )}

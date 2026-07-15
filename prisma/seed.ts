@@ -1,4 +1,5 @@
 import bcrypt from "bcryptjs";
+import { randomInt } from "node:crypto";
 import { prisma } from "../src/lib/prisma";
 
 async function main() {
@@ -98,7 +99,10 @@ async function seedSampleCategoriesAndProducts() {
 }
 
 function randomPassword() {
-  return Array.from({ length: 16 }, () => Math.floor(Math.random() * 36).toString(36)).join("");
+  // Math.random() is not a CSPRNG — unsuitable for a security credential,
+  // even a bootstrap one the admin is expected to change immediately.
+  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
+  return Array.from({ length: 20 }, () => alphabet[randomInt(alphabet.length)]).join("");
 }
 
 main()

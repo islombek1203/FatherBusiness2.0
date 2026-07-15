@@ -56,9 +56,11 @@ export function AdjustStockDialog({ productId, currentStock }: { productId: stri
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button variant="ghost" size="sm" data-testid="adjust-stock-trigger" />}>
+      <DialogTrigger
+        render={<Button variant="ghost" size="sm" aria-label={t("adjustStock")} data-testid="adjust-stock-trigger" />}
+      >
         <PackageSearch />
-        {t("adjustStock")}
+        <span className="hidden sm:inline">{t("adjustStock")}</span>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>

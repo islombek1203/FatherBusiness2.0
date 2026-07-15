@@ -20,6 +20,12 @@ const adapter = PrismaAdapter(prisma);
 
 const SESSION_MAX_AGE_SECONDS = 60 * 60 * 8; // 8 hours
 
+// A valid bcrypt hash of a value nobody will ever type, used purely so a
+// nonexistent-email lookup still pays the same bcrypt.compare cost as a real
+// one — otherwise the *absence* of that ~100ms of work is a timing
+// side-channel an attacker can use to enumerate which emails have accounts.
+const DUMMY_PASSWORD_HASH = "$2b$12$C6UzMDM.H6dfI/f/IKcEeO1YdVFsIVOK7T6bALjJt5.tJhK6r1eOe";
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter,
   trustHost: true,
@@ -50,13 +56,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (isRateLimited(rateLimitKey, 5)) return null;
 
         const user = await prisma.user.findUnique({ where: { email } });
-        if (!user || !user.isActive) {
-          recordFailedAttempt(rateLimitKey, rateLimitWindowMs);
-          return null;
-        }
 
-        const passwordMatches = await bcrypt.compare(password, user.passwordHash);
-        if (!passwordMatches) {
+        // Always run bcrypt.compare, even for a nonexistent/inactive user —
+        // against a dummy hash if necessary — so response timing doesn't
+        // reveal which emails have accounts.
+        const passwordMatches = await bcrypt.compare(password, user?.passwordHash ?? DUMMY_PASSWORD_HASH);
+
+        if (!user || !user.isActive || !passwordMatches) {
           recordFailedAttempt(rateLimitKey, rateLimitWindowMs);
           return null;
         }

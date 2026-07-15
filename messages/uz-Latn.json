@@ -232,7 +232,8 @@
     "errors": {
       "confirmation": "Tasdiqlash matni noto‘g‘ri",
       "missingFile": "Fayl tanlanmagan",
-      "restoreFailed": "Tiklashda xatolik yuz berdi"
+      "restoreFailed": "Tiklashda xatolik yuz berdi",
+      "restoreInProgress": "Hozir boshqa tiklash jarayoni ketmoqda. Birozdan so‘ng qayta urining."
     }
   },
   "profile": {
