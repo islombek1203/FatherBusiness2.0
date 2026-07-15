@@ -53,7 +53,19 @@
   },
   "dashboard": {
     "welcome": "Xush kelibsiz, {name}",
-    "subtitle": "Boshqaruv paneli keyingi bosqichda to‘ldiriladi: sotuvlar, xaridlar va foyda ko‘rsatkichlari shu yerda ko‘rinadi."
+    "recentSales": "So‘nggi sotuvlar",
+    "noRecentSales": "Hozircha sotuvlar mavjud emas",
+    "viewAllSales": "Barcha sotuvlarni ko‘rish",
+    "salesCount": "{count, plural, =0 {sotuv yo‘q} other {# ta sotuv}}",
+    "itemsCount": "{count, plural, =0 {mahsulot yo‘q} other {# ta mahsulot}}",
+    "stats": {
+      "todaySales": "Bugungi savdo",
+      "todayProfit": "Bugungi foyda",
+      "monthSales": "Shu oy savdosi",
+      "monthProfit": "Shu oy foydasi",
+      "activeProducts": "Faol mahsulotlar",
+      "outOfStock": "Qoldiq tugagan"
+    }
   },
   "categories": {
     "title": "Kategoriyalar",
@@ -114,5 +126,57 @@
     "max": "Qiymat juda katta",
     "integer": "Butun son bo‘lishi kerak",
     "idle": ""
+  },
+  "purchases": {
+    "title": "Xaridlar",
+    "new": "Yangi xarid",
+    "supplier": "Yetkazib beruvchi",
+    "selectSupplier": "Yetkazib beruvchini tanlang",
+    "items": "Mahsulotlar",
+    "product": "Mahsulot",
+    "selectProduct": "Mahsulotni tanlang",
+    "quantity": "Miqdor",
+    "unitCost": "Birlik narxi",
+    "addItem": "Qator qo‘shish",
+    "note": "Izoh",
+    "date": "Sana",
+    "itemCount": "Mahsulotlar soni",
+    "total": "Jami",
+    "recordedBy": "Kiritdi",
+    "noPurchases": "Hozircha xaridlar mavjud emas"
+  },
+  "sales": {
+    "title": "Sotuvlar",
+    "new": "Yangi sotuv",
+    "items": "Mahsulotlar",
+    "product": "Mahsulot",
+    "selectProduct": "Mahsulotni tanlang",
+    "quantity": "Miqdor",
+    "unitPrice": "Sotish narxi",
+    "available": "Mavjud",
+    "addItem": "Qator qo‘shish",
+    "note": "Izoh",
+    "date": "Sana",
+    "itemCount": "Mahsulotlar soni",
+    "total": "Jami",
+    "profit": "Foyda",
+    "recordedBy": "Kiritdi",
+    "noSales": "Hozircha sotuvlar mavjud emas",
+    "insufficientStock": "Tanlangan mahsulot(lar)dan omborda yetarli miqdor yo‘q"
+  },
+  "reports": {
+    "title": "Hisobotlar",
+    "from": "Dan",
+    "to": "Gacha",
+    "category": "Kategoriya",
+    "allCategories": "Barcha kategoriyalar",
+    "apply": "Qo‘llash",
+    "totalRevenue": "Jami savdo",
+    "totalProfit": "Jami foyda",
+    "unitsSold": "Sotilgan miqdor",
+    "product": "Mahsulot",
+    "revenue": "Savdo",
+    "profit": "Foyda",
+    "noData": "Tanlangan davr uchun ma’lumot yo‘q"
   }
 }

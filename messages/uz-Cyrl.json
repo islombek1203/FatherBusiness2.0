@@ -53,7 +53,19 @@
   },
   "dashboard": {
     "welcome": "Хуш келибсиз, {name}",
-    "subtitle": "Бошқарув панели кейинги босқичда тўлдирилади: сотувлар, харидлар ва фойда кўрсаткичлари шу ерда кўринади."
+    "recentSales": "Сўнгги сотувлар",
+    "noRecentSales": "Ҳозирча сотувлар мавжуд эмас",
+    "viewAllSales": "Барча сотувларни кўриш",
+    "salesCount": "{count, plural, =0 {сотув йўқ} other {# та сотув}}",
+    "itemsCount": "{count, plural, =0 {маҳсулот йўқ} other {# та маҳсулот}}",
+    "stats": {
+      "todaySales": "Бугунги савдо",
+      "todayProfit": "Бугунги фойда",
+      "monthSales": "Шу ой савдоси",
+      "monthProfit": "Шу ой фойдаси",
+      "activeProducts": "Фаол маҳсулотлар",
+      "outOfStock": "Қолдиқ тугаган"
+    }
   },
   "categories": {
     "title": "Категориялар",
@@ -114,5 +126,57 @@
     "max": "Қиймат жуда катта",
     "integer": "Бутун сон бўлиши керак",
     "idle": ""
+  },
+  "purchases": {
+    "title": "Харидлар",
+    "new": "Янги харид",
+    "supplier": "Етказиб берувчи",
+    "selectSupplier": "Етказиб берувчини танланг",
+    "items": "Маҳсулотлар",
+    "product": "Маҳсулот",
+    "selectProduct": "Маҳсулотни танланг",
+    "quantity": "Миқдор",
+    "unitCost": "Бирлик нархи",
+    "addItem": "Қатор қўшиш",
+    "note": "Изоҳ",
+    "date": "Сана",
+    "itemCount": "Маҳсулотлар сони",
+    "total": "Жами",
+    "recordedBy": "Киритди",
+    "noPurchases": "Ҳозирча харидлар мавжуд эмас"
+  },
+  "sales": {
+    "title": "Сотувлар",
+    "new": "Янги сотув",
+    "items": "Маҳсулотлар",
+    "product": "Маҳсулот",
+    "selectProduct": "Маҳсулотни танланг",
+    "quantity": "Миқдор",
+    "unitPrice": "Сотиш нархи",
+    "available": "Мавжуд",
+    "addItem": "Қатор қўшиш",
+    "note": "Изоҳ",
+    "date": "Сана",
+    "itemCount": "Маҳсулотлар сони",
+    "total": "Жами",
+    "profit": "Фойда",
+    "recordedBy": "Киритди",
+    "noSales": "Ҳозирча сотувлар мавжуд эмас",
+    "insufficientStock": "Танланган маҳсулот(лар)дан омборда етарли миқдор йўқ"
+  },
+  "reports": {
+    "title": "Ҳисоботлар",
+    "from": "Дан",
+    "to": "Гача",
+    "category": "Категория",
+    "allCategories": "Барча категориялар",
+    "apply": "Қўллаш",
+    "totalRevenue": "Жами савдо",
+    "totalProfit": "Жами фойда",
+    "unitsSold": "Сотилган миқдор",
+    "product": "Маҳсулот",
+    "revenue": "Савдо",
+    "profit": "Фойда",
+    "noData": "Танланган давр учун маълумот йўқ"
   }
 }

@@ -42,13 +42,14 @@ This file tracks phase/task progress so a fresh session can resume from `git log
 - [ ] Commit
 
 ## Phase 3 — Transactions
-- [ ] Prisma models: Purchase, Sale (+ line items)
-- [ ] Purchases: update stock + last purchase price (transactional)
-- [ ] Sales: decrement stock + compute profit via costing function (transactional)
-- [ ] Costing function: single well-named function, last-purchase-price method
-- [ ] Dashboard: correct stock/sales/profit calculations
-- [ ] Profit reporting (by date range / product / category)
-- [ ] Unit tests: costing function, stock math
+- [x] Prisma models: Purchase/PurchaseItem, Sale/SaleItem (line items, since a real purchase/sale usually covers several products)
+- [x] Purchases (`src/lib/purchases.ts` `recordPurchase()`): transactional — stock + `Product.lastPurchasePrice` + InventoryHistory all-or-nothing per line
+- [x] Sales (`src/lib/sales.ts` `recordSale()`): transactional, throws `InsufficientStockError` (caught by the action, shown as a translated message) if requested qty exceeds current stock; new-sale form only lists in-stock products
+- [x] Costing function (`src/lib/costing.ts`): `getProductCost()` = last purchase price (0 if never purchased), `calculateUnitProfit()`. `SaleItem.unitCost` snapshots cost at sale time so historical profit never shifts when a later purchase changes the product's current cost
+- [x] Dashboard: today/this-month sales+profit (Tashkent-timezone business-day boundaries, `src/lib/date-range.ts`), active product count, out-of-stock count, recent sales — real Prisma aggregates, not placeholders
+- [x] Profit reporting (`/reports`): date range + category filter, totals + per-product breakdown (revenue, profit, units sold)
+- [x] Unit tests: costing function (6), date-range business-day/month boundaries incl. UTC+5 rollover (4) — 18 Vitest tests total across the project
+- [x] Playwright: full purchase→sale→dashboard→reports flow verified live (screenshots confirmed exact profit math: 5 × (10000−6000) = 20000), zero-stock products correctly excluded from the sale form — 21/21 across all 3 viewports
 - [ ] Commit
 
 ## Phase 4 — Data & admin

@@ -43,6 +43,8 @@ model User {
   sessions         Session[]
   accounts         Account[]
   inventoryHistory InventoryHistory[]
+  purchases        Purchase[]
+  sales            Sale[]
 
   @@map("users")
 }
@@ -121,6 +123,8 @@ model Supplier {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
+  purchases Purchase[]
+
   @@map("suppliers")
 }
 
@@ -148,7 +152,9 @@ model Product {
   categoryId String
   category   Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
 
-  history InventoryHistory[]
+  history       InventoryHistory[]
+  purchaseItems PurchaseItem[]
+  saleItems     SaleItem[]
 
   @@index([categoryId])
   @@map("products")
@@ -180,4 +186,85 @@ model InventoryHistory {
   @@index([productId])
   @@index([createdAt])
   @@map("inventory_history")
+}
+
+// ---------------------------------------------------------------------------
+// Transactions (Phase 3)
+// ---------------------------------------------------------------------------
+
+model Purchase {
+  id          String   @id @default(cuid())
+  note        String?
+  // Denormalized sum of item quantity*unitCost, computed and stored inside
+  // the same transaction that creates the items — a read-time convenience,
+  // not a second source of truth.
+  totalAmount Decimal  @db.Decimal(14, 2)
+  createdAt   DateTime @default(now())
+
+  supplierId String
+  supplier   Supplier @relation(fields: [supplierId], references: [id], onDelete: Restrict)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  items PurchaseItem[]
+
+  @@index([supplierId])
+  @@index([createdAt])
+  @@map("purchases")
+}
+
+model PurchaseItem {
+  id       String  @id @default(cuid())
+  quantity Int
+  // Price paid per unit in this purchase. Recording a new PurchaseItem for a
+  // product is what updates Product.lastPurchasePrice (see
+  // src/lib/purchases.ts) — this is the raw input to the costing function.
+  unitCost Decimal @db.Decimal(14, 2)
+
+  purchaseId String
+  purchase   Purchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@index([purchaseId])
+  @@index([productId])
+  @@map("purchase_items")
+}
+
+model Sale {
+  id          String   @id @default(cuid())
+  note        String?
+  totalAmount Decimal  @db.Decimal(14, 2)
+  totalProfit Decimal  @db.Decimal(14, 2)
+  createdAt   DateTime @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  items SaleItem[]
+
+  @@index([createdAt])
+  @@map("sales")
+}
+
+model SaleItem {
+  id        String  @id @default(cuid())
+  quantity  Int
+  unitPrice Decimal @db.Decimal(14, 2)
+  // Snapshot of getProductCost() (src/lib/costing.ts) at the moment of sale.
+  // Historical profit must stay fixed to what it was at the time of the
+  // sale, even if a later purchase changes the product's current cost.
+  unitCost  Decimal @db.Decimal(14, 2)
+
+  saleId String
+  sale   Sale   @relation(fields: [saleId], references: [id], onDelete: Cascade)
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@index([saleId])
+  @@index([productId])
+  @@map("sale_items")
 }
