@@ -72,7 +72,12 @@ _(Committed: `9c0306e`. The "Commit" checkbox below was left unticked by the ses
 - [x] No build errors, no TS errors, no failing tests. 34/36 Playwright tests passing, 2 correctly skipped; the two on-and-off failures seen during this phase were traced to (a) a stale `next start` process left running from a prior session serving mismatched chunks — not a real regression, and (b) pre-existing cross-test races from the e2e suite sharing one dev DB with no per-test reset (documented, not new)
 - [x] Security checklist read-through — see `docs/production-checklist.md` for the full itemized list. New in this phase: constant-time login (dummy-hash `bcrypt.compare` against nonexistent/inactive users), CSPRNG seed-admin password (was `Math.random()`), `Sec-Fetch-Site` same-origin check on backup/restore (`src/lib/require-same-origin.ts`), restore concurrency lock, `poweredByHeader: false`, and a full security-headers set (CSP, X-Content-Type-Options, X-Frame-Options, Referrer-Policy, Permissions-Policy) from `next.config.ts`. **Caveat**: the CSP has no script nonce — `proxy.ts`-set response headers were found not to reach the client in this Next.js 16.2.10 build (verified with a minimal repro), so `script-src` needs `'unsafe-inline'` rather than the stricter nonce+`strict-dynamic` policy the App Router docs recommend. Full writeup in `docs/production-checklist.md`
 - [x] /docs: installation guide, deployment guide (VPS + Docker Compose + Caddy), production checklist, user manual, admin manual, backup/restore procedure, architecture overview — all added under `docs/`, linked from `README.md`
-- [ ] Commit
+- [x] Commit (`f67e1a1`)
+
+## Outstanding before a real production launch
+Everything above is done and verified as far as this machine allows. Two items remain genuinely open — both already flagged in `docs/production-checklist.md`, repeated here since PLAN.md is the resume-from-here file:
+- **Docker Compose has never been build-tested** — no Docker on this dev machine. Run `docker compose up --build` for real before relying on it (see `docs/deployment.md`'s verification section).
+- **CSP has no script nonce** (`'unsafe-inline'` on script-src) because `proxy.ts` response headers don't reach the client in this Next 16.2.10 build. Re-attempt the nonce approach if a future Next release fixes that.
 
 ## Future-proofing (design seams only, not implemented)
 Barcode/QR/camera scanning, multi-store/warehouse, cloud sync, analytics, AI features, external API integrations.
