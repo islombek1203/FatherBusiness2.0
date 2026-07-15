@@ -1,0 +1,92 @@
+// Prisma schema for the Cloud Inventory Management System.
+// Connection URL is configured in prisma.config.ts (Prisma 7 convention), not here.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------------------------------------------------------------------------
+// Auth & users (Phase 1)
+// ---------------------------------------------------------------------------
+
+// Admin: full access (users, settings, everything).
+// Staff: record purchases/sales/adjustments, view dashboard and reports.
+// Viewer: read-only access to dashboard and reports (no mutations).
+enum Role {
+  ADMIN
+  STAFF
+  VIEWER
+}
+
+// The two supported locales, per the localization spec (Uzbek Cyrillic default, Uzbek Latin).
+enum Locale {
+  UZ_CYRL
+  UZ_LATN
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(STAFF)
+  locale       Locale   @default(UZ_CYRL)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  sessions Session[]
+  accounts Account[]
+
+  @@map("users")
+}
+
+// Auth.js Prisma adapter models (database session strategy = real server-side
+// sessions, not JWT-in-cookie). Account/VerificationToken are part of the
+// standard adapter schema; unused by the credentials-only flow today but kept
+// so the adapter works unmodified and future OAuth providers can be added
+// without a schema change.
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}

@@ -1,0 +1,20 @@
+{$DOMAIN} {
+	reverse_proxy app:3000
+
+	encode gzip zstd
+
+	header {
+		# Sensible security headers. Caddy already adds Strict-Transport-Security
+		# automatically once a certificate is issued for a real domain.
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		-Server
+	}
+
+	log {
+		output stdout
+		format console
+	}
+}

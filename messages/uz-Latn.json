@@ -1,0 +1,55 @@
+{
+  "common": {
+    "appName": "Ombor Boshqaruvi",
+    "loading": "Yuklanmoqda…",
+    "save": "Saqlash",
+    "cancel": "Bekor qilish",
+    "delete": "O‘chirish",
+    "edit": "Tahrirlash",
+    "add": "Qo‘shish",
+    "search": "Qidirish",
+    "filter": "Filtr",
+    "actions": "Amallar",
+    "back": "Orqaga",
+    "confirm": "Tasdiqlash",
+    "yes": "Ha",
+    "no": "Yo‘q",
+    "close": "Yopish",
+    "noResults": "Hech narsa topilmadi",
+    "language": "Til"
+  },
+  "nav": {
+    "dashboard": "Boshqaruv paneli",
+    "products": "Mahsulotlar",
+    "categories": "Kategoriyalar",
+    "suppliers": "Yetkazib beruvchilar",
+    "inventory": "Ombor",
+    "purchases": "Xaridlar",
+    "sales": "Sotuvlar",
+    "reports": "Hisobotlar",
+    "users": "Foydalanuvchilar",
+    "settings": "Sozlamalar",
+    "profile": "Profil",
+    "logout": "Chiqish"
+  },
+  "auth": {
+    "signInTitle": "Tizimga kirish",
+    "signInSubtitle": "Davom etish uchun hisobingizga kiring",
+    "email": "Email",
+    "password": "Parol",
+    "signIn": "Kirish",
+    "signingIn": "Kirilmoqda…",
+    "invalidCredentials": "Email yoki parol noto‘g‘ri",
+    "tooManyAttempts": "Urinishlar juda ko‘p. Birozdan so‘ng qayta urining.",
+    "genericError": "Xatolik yuz berdi. Qayta urining."
+  },
+  "roles": {
+    "ADMIN": "Administrator",
+    "STAFF": "Xodim",
+    "VIEWER": "Kuzatuvchi"
+  },
+  "dashboard": {
+    "welcome": "Xush kelibsiz, {name}",
+    "subtitle": "Boshqaruv paneli keyingi bosqichda to‘ldiriladi: sotuvlar, xaridlar va foyda ko‘rsatkichlari shu yerda ko‘rinadi."
+  }
+}

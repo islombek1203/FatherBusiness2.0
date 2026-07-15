@@ -10,19 +10,20 @@ This file tracks phase/task progress so a fresh session can resume from `git log
 
 ## Phase 1 — Foundation
 - [x] Git repo initialized, PLAN.md created
-- [ ] Next.js (App Router) + TypeScript strict scaffold
-- [ ] Tailwind CSS + shadcn/ui wired up
-- [ ] Prisma + PostgreSQL connected, initial migration
-- [ ] Auth.js credentials provider, bcrypt password hashing, server-side sessions
-- [ ] Roles: Admin, Staff (+ Viewer read-only) enforced server-side
-- [ ] next-intl scaffold: uz-Cyrl (default) + uz-Latn, cookie + per-user persisted locale
-- [ ] Responsive app shell + navigation (375/768/1440)
-- [ ] Seed script: Admin user + sample categories/products
-- [ ] docker-compose.yml (app + Postgres + Caddy), Dockerfile, Caddyfile
-- [ ] .env.example
-- [ ] Vitest configured, first passing test
-- [ ] Playwright configured, first passing smoke test
-- [ ] Build clean, typecheck clean, phase usable end-to-end (login/logout)
+- [x] Next.js (App Router) + TypeScript strict scaffold (Next 16.2.10 / React 19.2 — Turbopack default, async params/cookies/headers, `proxy.ts` not `middleware.ts`)
+- [x] Tailwind CSS v4 + shadcn/ui (Base UI primitives — use the `render` prop, not `asChild`) wired up
+- [x] Prisma 7 + PostgreSQL connected via `@prisma/adapter-pg` driver adapter, initial migration applied
+- [x] Auth.js v5 credentials provider, bcrypt password hashing, real database-backed sessions (custom `jwt.encode`/`decode` bridging to the Prisma adapter's Session table — Auth.js forbids `session.strategy: "database"` for a credentials-only setup, so this is the documented workaround), login rate-limited (5/15min per email)
+- [x] Roles: Admin, Staff, Viewer in schema; Admin-only route prefixes enforced in `proxy.ts` + every protected layout re-checks `auth()` server-side. Per-action Staff-vs-Viewer write restrictions land with the first mutating routes in Phase 2.
+- [x] next-intl scaffold: uz-Cyrl (default) + uz-Latn, no URL routing — locale resolved from the signed-in user's DB preference, else the `NEXT_LOCALE` cookie (works pre-login on /login), else default
+- [x] Responsive app shell + navigation (sidebar desktop / Sheet drawer mobile, safe-area insets), verified via Playwright screenshots at 375/768/1440
+- [x] PWA: manifest.json, generated icons (incl. maskable + apple-touch), hand-rolled sw.js (Turbopack has no webpack-plugin PWA lib support), standalone display, safe-area handling
+- [x] Seed script: Admin user (random password printed once, or `SEED_ADMIN_EMAIL`/`SEED_ADMIN_PASSWORD` env override). Sample categories/products added once those models exist in Phase 2.
+- [x] docker-compose.yml (app + Postgres + Caddy), Dockerfile (multi-stage, non-root), Caddyfile, docker-entrypoint.sh (migrate deploy + seed on boot) — **written but not yet build-tested**: Docker isn't installed on this dev machine (installing Docker Desktop needs a GUI/license step beyond a quiet CLI install, so it was left for the user or a later session). `docker compose up --build` should be run once before relying on this in production.
+- [x] .env.example
+- [x] Vitest configured, 7 tests passing (rate limiter, locale mapping)
+- [x] Playwright configured, 9 tests passing across mobile/tablet/desktop (invalid login, protected-route redirect, full login→dashboard→logout)
+- [x] Build clean, typecheck clean, lint clean, phase usable end-to-end (login/logout) — verified live via Playwright, not just unit tests
 - [ ] Commit
 
 ## Phase 2 — Core inventory
