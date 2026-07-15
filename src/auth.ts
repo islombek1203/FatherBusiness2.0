@@ -5,7 +5,7 @@ import bcrypt from "bcryptjs";
 import { randomUUID } from "crypto";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { checkRateLimit } from "@/lib/rate-limit";
+import { isRateLimited, recordFailedAttempt } from "@/lib/rate-limit";
 import type { Role, Locale } from "@/generated/prisma/enums";
 
 const credentialsSchema = z.object({
@@ -41,18 +41,25 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (!parsed.success) return null;
         const { email, password } = parsed.data;
 
-        // Rate-limit by email: 5 attempts per 15 minutes, regardless of outcome.
-        const { allowed } = checkRateLimit(`login:${email}`, {
-          limit: 5,
-          windowMs: 15 * 60 * 1000,
-        });
-        if (!allowed) return null;
+        // Rate-limit by email: 5 *failed* attempts per 15 minutes. Only
+        // failures ever consume the budget, so legitimate concurrent use
+        // (the same account signing in from a second device, multiple
+        // browser tabs, etc.) is never blocked.
+        const rateLimitKey = `login:${email}`;
+        const rateLimitWindowMs = 15 * 60 * 1000;
+        if (isRateLimited(rateLimitKey, 5)) return null;
 
         const user = await prisma.user.findUnique({ where: { email } });
-        if (!user || !user.isActive) return null;
+        if (!user || !user.isActive) {
+          recordFailedAttempt(rateLimitKey, rateLimitWindowMs);
+          return null;
+        }
 
         const passwordMatches = await bcrypt.compare(password, user.passwordHash);
-        if (!passwordMatches) return null;
+        if (!passwordMatches) {
+          recordFailedAttempt(rateLimitKey, rateLimitWindowMs);
+          return null;
+        }
 
         return {
           id: user.id,

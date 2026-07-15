@@ -16,7 +16,8 @@ export function NavList({ role, onNavigate }: { role: Role; onNavigate?: () => v
   return (
     <nav className="flex flex-col gap-1">
       {visibleItems.map((item) => {
-        const isActive = pathname === item.href;
+        const isActive =
+          item.href === "/" ? pathname === "/" : pathname === item.href || pathname.startsWith(`${item.href}/`);
         const Icon = item.icon;
         return (
           <Link

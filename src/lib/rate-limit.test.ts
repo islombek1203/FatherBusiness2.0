@@ -1,34 +1,42 @@
 import { describe, expect, it } from "vitest";
-import { checkRateLimit } from "./rate-limit";
+import { isRateLimited, recordFailedAttempt } from "./rate-limit";
 
-describe("checkRateLimit", () => {
-  it("allows requests under the limit", () => {
+describe("rate limiter", () => {
+  it("does not rate-limit a key with no recorded failures", () => {
     const key = `test-${crypto.randomUUID()}`;
-    for (let i = 0; i < 5; i++) {
-      expect(checkRateLimit(key, { limit: 5, windowMs: 60_000 }).allowed).toBe(true);
-    }
+    expect(isRateLimited(key, 5)).toBe(false);
   });
 
-  it("blocks requests once the limit is exceeded within the window", () => {
+  it("rate-limits once the failure count reaches the limit", () => {
     const key = `test-${crypto.randomUUID()}`;
     for (let i = 0; i < 5; i++) {
-      checkRateLimit(key, { limit: 5, windowMs: 60_000 });
+      expect(isRateLimited(key, 5)).toBe(false);
+      recordFailedAttempt(key, 60_000);
     }
-    const result = checkRateLimit(key, { limit: 5, windowMs: 60_000 });
-    expect(result.allowed).toBe(false);
-    expect(result.retryAfterMs).toBeGreaterThan(0);
-  });
-
-  it("resets after the window elapses", () => {
-    const key = `test-${crypto.randomUUID()}`;
-    checkRateLimit(key, { limit: 1, windowMs: 1 });
-    expect(checkRateLimit(key, { limit: 1, windowMs: 1 }).allowed).toBe(false);
+    expect(isRateLimited(key, 5)).toBe(true);
   });
 
   it("tracks independent keys separately", () => {
     const keyA = `test-${crypto.randomUUID()}`;
     const keyB = `test-${crypto.randomUUID()}`;
-    checkRateLimit(keyA, { limit: 1, windowMs: 60_000 });
-    expect(checkRateLimit(keyB, { limit: 1, windowMs: 60_000 }).allowed).toBe(true);
+    for (let i = 0; i < 5; i++) recordFailedAttempt(keyA, 60_000);
+    expect(isRateLimited(keyA, 5)).toBe(true);
+    expect(isRateLimited(keyB, 5)).toBe(false);
+  });
+
+  it("resets after the window elapses", async () => {
+    const key = `test-${crypto.randomUUID()}`;
+    recordFailedAttempt(key, 5);
+    expect(isRateLimited(key, 1)).toBe(true);
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    expect(isRateLimited(key, 1)).toBe(false);
+  });
+
+  it("never blocks a key that only ever succeeds (no failures recorded)", () => {
+    const key = `test-${crypto.randomUUID()}`;
+    for (let i = 0; i < 20; i++) {
+      expect(isRateLimited(key, 5)).toBe(false);
+      // success path: no recordFailedAttempt call
+    }
   });
 });

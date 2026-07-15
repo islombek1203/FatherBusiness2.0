@@ -27,14 +27,18 @@ This file tracks phase/task progress so a fresh session can resume from `git log
 - [ ] Commit
 
 ## Phase 2 — Core inventory
-- [ ] Prisma models: Category, Supplier, Product, InventoryHistory (append-only)
-- [ ] Categories CRUD + validation + search/filter
-- [ ] Suppliers CRUD + validation + search/filter
-- [ ] Products CRUD + validation + search/filter, linked to Category/Supplier
-- [ ] Stock Adjustments (transactional, writes InventoryHistory)
-- [ ] Inventory History view (who/what/when/qty before-after)
-- [ ] Zod schemas for all server-side input validation
-- [ ] Tests (unit + e2e for CRUD flows)
+- [x] Prisma models: Category, Supplier, Product, InventoryHistory (append-only, `InventoryChangeType` enum shared with Phase 3's Purchase/Sale)
+- [x] Categories CRUD + validation + search, soft delete via `isActive` (Restrict FK — a category with products can't be hard-deleted)
+- [x] Suppliers CRUD + validation + search, soft delete via `isActive` (not yet linked to Product/Purchase — that lands with Purchases in Phase 3)
+- [x] Products CRUD + validation + search/filter by category, linked to Category. SKU unique, `sellingPrice` as Prisma `Decimal`, `currentStock` denormalized
+- [x] Stock Adjustments: `adjustStock()` in `src/lib/inventory.ts`, wraps Product.currentStock update + InventoryHistory write in one `$transaction`, triggered via a Dialog on the product list
+- [x] Inventory History view (`/inventory`): read-only, most-recent-first, shows who/what/when/qty-before-after
+- [x] Zod schemas per entity (`src/lib/validation/*`), error messages are short keys (`required`/`duplicate`/`min0`/…) translated via `formErrors.*` — not hardcoded English
+- [x] `requireRole`/`WRITE_ROLES` helper (`src/lib/auth-helpers.ts`) — every mutating server action calls it; Viewer sees read-only UI (write buttons hidden) but the real enforcement is server-side regardless of what the client renders
+- [x] Vitest (8 tests) + Playwright (15 tests, all 3 viewports): category create+rename, product create with category linkage via the Select, stock adjustment updating both the product row and inventory history — driven live in a real browser, not just typechecked
+- [x] Bug found & fixed during e2e: the login rate limiter counted *successful* logins toward its 5-per-15-min budget, so concurrent legitimate logins (same seeded account, multiple test workers) tripped it. Fixed to only count failures (`isRateLimited`/`recordFailedAttempt` in `src/lib/rate-limit.ts`) — also fixes a real bug where an admin signing in from two devices within 15 minutes would have been locked out
+- [x] Seed script extended: 3 sample categories + 4 sample products (idempotent via `upsert`)
+- [x] Nav updated (Products/Categories/Suppliers/Inventory), active-link matching fixed to cover sub-routes
 - [ ] Commit
 
 ## Phase 3 — Transactions

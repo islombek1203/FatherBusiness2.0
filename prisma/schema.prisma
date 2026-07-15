@@ -40,8 +40,9 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  sessions Session[]
-  accounts Account[]
+  sessions         Session[]
+  accounts         Account[]
+  inventoryHistory InventoryHistory[]
 
   @@map("users")
 }
@@ -89,4 +90,94 @@ model VerificationToken {
 
   @@unique([identifier, token])
   @@map("verification_tokens")
+}
+
+// ---------------------------------------------------------------------------
+// Core inventory (Phase 2)
+// ---------------------------------------------------------------------------
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  products Product[]
+
+  @@map("categories")
+}
+
+model Supplier {
+  id            String   @id @default(cuid())
+  name          String
+  contactPerson String?
+  phone         String?
+  email         String?
+  address       String?
+  notes         String?
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("suppliers")
+}
+
+model Product {
+  id   String @id @default(cuid())
+  sku  String @unique
+  name String
+
+  description String?
+  // Unit of measure shown in tables/forms (e.g. "dona", "kg", "litr").
+  unit        String  @default("dona")
+
+  sellingPrice Decimal @db.Decimal(14, 2)
+  // Cost of a product = the price on its most recent purchase (see
+  // src/lib/costing.ts). Null until the first purchase is recorded (Phase 3).
+  lastPurchasePrice Decimal? @db.Decimal(14, 2)
+  // Denormalized running total, kept in sync with InventoryHistory inside the
+  // same DB transaction as every stock-touching mutation.
+  currentStock Int @default(0)
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+
+  history InventoryHistory[]
+
+  @@index([categoryId])
+  @@map("products")
+}
+
+// What kind of transaction moved stock. Purchases/Sales are recorded here
+// too (Phase 3) so this table is the single append-only audit trail for
+// every stock change, not just manual adjustments.
+enum InventoryChangeType {
+  PURCHASE
+  SALE
+  ADJUSTMENT
+}
+
+model InventoryHistory {
+  id             String              @id @default(cuid())
+  type           InventoryChangeType
+  quantityBefore Int
+  quantityAfter  Int
+  note           String?
+  createdAt      DateTime            @default(now())
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@index([productId])
+  @@index([createdAt])
+  @@map("inventory_history")
 }

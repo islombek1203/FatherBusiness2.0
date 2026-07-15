@@ -16,7 +16,10 @@
     "no": "Yo‘q",
     "close": "Yopish",
     "noResults": "Hech narsa topilmadi",
-    "language": "Til"
+    "language": "Til",
+    "inactive": "Faol emas",
+    "activate": "Faollashtirish",
+    "deactivate": "Faolsizlantirish"
   },
   "nav": {
     "dashboard": "Boshqaruv paneli",
@@ -51,5 +54,65 @@
   "dashboard": {
     "welcome": "Xush kelibsiz, {name}",
     "subtitle": "Boshqaruv paneli keyingi bosqichda to‘ldiriladi: sotuvlar, xaridlar va foyda ko‘rsatkichlari shu yerda ko‘rinadi."
+  },
+  "categories": {
+    "title": "Kategoriyalar",
+    "new": "Yangi kategoriya",
+    "edit": "Kategoriyani tahrirlash",
+    "name": "Nomi",
+    "description": "Tavsif",
+    "productCount": "Mahsulotlar soni"
+  },
+  "suppliers": {
+    "title": "Yetkazib beruvchilar",
+    "new": "Yangi yetkazib beruvchi",
+    "edit": "Yetkazib beruvchini tahrirlash",
+    "name": "Nomi",
+    "contactPerson": "Aloqa shaxsi",
+    "phone": "Telefon",
+    "email": "Email",
+    "address": "Manzil",
+    "notes": "Izohlar"
+  },
+  "products": {
+    "title": "Mahsulotlar",
+    "new": "Yangi mahsulot",
+    "edit": "Mahsulotni tahrirlash",
+    "sku": "Kod (SKU)",
+    "name": "Nomi",
+    "description": "Tavsif",
+    "category": "Kategoriya",
+    "selectCategory": "Kategoriyani tanlang",
+    "allCategories": "Barcha kategoriyalar",
+    "unit": "O‘lchov birligi",
+    "sellingPrice": "Sotish narxi",
+    "stock": "Qoldiq"
+  },
+  "inventory": {
+    "adjustStock": "Qoldiqni to‘g‘rilash",
+    "adjustStockDescription": "Joriy qoldiq: {current}. Yangi hisoblangan miqdorni kiriting.",
+    "newQuantity": "Yangi miqdor",
+    "reason": "Sabab",
+    "date": "Sana",
+    "product": "Mahsulot",
+    "type": "Turi",
+    "quantityBefore": "Oldingi miqdor",
+    "quantityAfter": "Keyingi miqdor",
+    "user": "Foydalanuvchi",
+    "noHistory": "Hozircha tarix mavjud emas",
+    "types": {
+      "PURCHASE": "Xarid",
+      "SALE": "Sotuv",
+      "ADJUSTMENT": "To‘g‘rilash"
+    }
+  },
+  "formErrors": {
+    "required": "Bu maydon to‘ldirilishi shart",
+    "invalid": "Qiymat noto‘g‘ri",
+    "duplicate": "Bunday qiymat allaqachon mavjud",
+    "min0": "Nol yoki undan katta bo‘lishi kerak",
+    "max": "Qiymat juda katta",
+    "integer": "Butun son bo‘lishi kerak",
+    "idle": ""
   }
 }
