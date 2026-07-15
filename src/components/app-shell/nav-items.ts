@@ -4,9 +4,11 @@ import {
   History,
   LayoutDashboard,
   Package,
+  Settings,
   ShoppingCart,
   Tags,
   Truck,
+  Users,
   Wallet,
 } from "lucide-react";
 import type { Role } from "@/generated/prisma/enums";
@@ -29,8 +31,6 @@ export type NavItem = {
   roles?: Role[];
 };
 
-// Extend this list as each phase ships its routes — Users/Settings land in
-// Phase 4.
 export const navItems: NavItem[] = [
   { href: "/", labelKey: "dashboard", icon: LayoutDashboard },
   { href: "/products", labelKey: "products", icon: Package },
@@ -40,4 +40,6 @@ export const navItems: NavItem[] = [
   { href: "/sales", labelKey: "sales", icon: ShoppingCart },
   { href: "/inventory", labelKey: "inventory", icon: History },
   { href: "/reports", labelKey: "reports", icon: BarChart3 },
+  { href: "/users", labelKey: "users", icon: Users, roles: ["ADMIN"] },
+  { href: "/settings", labelKey: "settings", icon: Settings, roles: ["ADMIN"] },
 ];

@@ -1,6 +1,7 @@
 "use client";
 
-import { LogOut } from "lucide-react";
+import Link from "next/link";
+import { LogOut, UserRound } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -8,6 +9,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
+  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
@@ -45,6 +47,11 @@ export function UserMenu({ name, role }: { name: string; role: Role }) {
         <DropdownMenuGroup>
           <DropdownMenuLabel className="truncate">{name}</DropdownMenuLabel>
         </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem render={<Link href="/profile" />}>
+          <UserRound className="size-4" />
+          {t("profile")}
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <form action={logout}>
           <button type="submit" className="hover:bg-accent flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm">

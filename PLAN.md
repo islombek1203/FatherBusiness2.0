@@ -53,14 +53,15 @@ This file tracks phase/task progress so a fresh session can resume from `git log
 - [ ] Commit
 
 ## Phase 4 — Data & admin
-- [ ] Excel export (ExcelJS)
-- [ ] PDF export with embedded Unicode font (Noto Sans / DejaVu Sans), verified with real Cyrillic PDF
-- [ ] Data import
-- [ ] Backup (DB dump/export)
-- [ ] Restore (from backup)
-- [ ] User Management (Admin only)
-- [ ] Settings
-- [ ] User Profile (incl. language preference)
+- [x] Excel export (ExcelJS) for Products, Purchases, Sales, Inventory History (`src/lib/export/excel.ts`, `/api/export/*`) — column headers translated, verified real Cyrillic bytes intact in the generated xlsx
+- [x] PDF export with embedded Unicode font — DejaVu Sans (regular+bold, full Cyrillic coverage) vendored into `public/fonts/` (not node_modules, so it survives Docker's standalone-output file tracing), registered in `src/lib/export/pdf.tsx` via `@react-pdf/renderer`. **Verified with a real generated PDF** — read back page-by-page, Cyrillic headers ("Маҳсулотлар", "Категория", "Қолдиқ", ...) render correctly, no boxes/question marks
+- [x] Data import: `/products/import` — Excel upload, upsert-by-SKU, auto-creates missing categories, stock set via the same transactional `adjustStock()` (so imports show up in Inventory History too), "download template" reuses the Products export for round-trip consistency
+- [x] Backup: `GET /api/backup` (Admin only) → `pg_dump --format=custom` streamed as a download. **Bug found & fixed via e2e**: Prisma's `?schema=public` query param isn't valid libpq syntax — pg_dump/pg_restore rejected the raw `DATABASE_URL`. Added `src/lib/db-url.ts` to strip Prisma-only params and pass `--schema` separately
+- [x] Restore: `POST /api/restore` (Admin only) — `pg_restore --clean --if-exists`, gated behind typing the literal word "RESTORE", warns this is irreversible. **Verified live**: downloaded a real backup, POSTed it back (self-consistent round trip), confirmed `pg_restore --list` shows a well-formed archive and that admin login still works immediately after restore (sessions table correctly gets replaced, forcing re-login, but the user/password data survives intact)
+- [x] User Management (`/users`, Admin only): create/edit/reset-password/activate-deactivate; a "last active Admin" guard blocks demoting or deactivating the only remaining Admin, so the app can never lock everyone out
+- [x] Settings (`/settings`, Admin only): houses Backup/Restore — no other global config needed since currency/store-scope are fixed per the spec's Section 0
+- [x] User Profile (`/profile`): edit own name, change own password (invalidates all sessions incl. current, forcing re-login — standard practice). Language preference already lives in the topbar `LocaleSwitcher` (Phase 1), not duplicated here
+- [x] Playwright: 12 new tests (user CRUD + reset password + deactivate, backup download, Excel+PDF export downloads, Excel import) — full suite now 33/33 across mobile/tablet/desktop
 - [ ] Commit
 
 ## Phase 5 — Hardening

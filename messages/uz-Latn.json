@@ -98,9 +98,11 @@
     "allCategories": "Barcha kategoriyalar",
     "unit": "O‘lchov birligi",
     "sellingPrice": "Sotish narxi",
-    "stock": "Qoldiq"
+    "stock": "Qoldiq",
+    "import": "Import"
   },
   "inventory": {
+    "title": "Ombor tarixi",
     "adjustStock": "Qoldiqni to‘g‘rilash",
     "adjustStockDescription": "Joriy qoldiq: {current}. Yangi hisoblangan miqdorni kiriting.",
     "newQuantity": "Yangi miqdor",
@@ -125,6 +127,8 @@
     "min0": "Nol yoki undan katta bo‘lishi kerak",
     "max": "Qiymat juda katta",
     "integer": "Butun son bo‘lishi kerak",
+    "min8": "Kamida 8 ta belgidan iborat bo‘lishi kerak",
+    "passwordMismatch": "Parollar mos kelmadi",
     "idle": ""
   },
   "purchases": {
@@ -164,6 +168,24 @@
     "noSales": "Hozircha sotuvlar mavjud emas",
     "insufficientStock": "Tanlangan mahsulot(lar)dan omborda yetarli miqdor yo‘q"
   },
+  "export": {
+    "generatedAt": "Yaratilgan: {date}",
+    "excel": "Excel",
+    "pdf": "PDF"
+  },
+  "import": {
+    "title": "Mahsulotlarni import qilish",
+    "description": "Excel (.xlsx) fayldan mahsulotlarni ommaviy qo‘shish yoki yangilash. Ustunlar tartibi: SKU, Nomi, Kategoriya, O‘lchov birligi, Qoldiq, Sotish narxi. Mavjud SKU yangilanadi, yangi SKU qo‘shiladi.",
+    "downloadTemplate": "Namuna faylni yuklab olish",
+    "file": "Excel fayl",
+    "summary": "Qo‘shildi: {created}, yangilandi: {updated}",
+    "errors": {
+      "missingFile": "Fayl tanlanmagan",
+      "invalidFile": "Fayl formati noto‘g‘ri",
+      "emptySheet": "Faylda ma’lumot topilmadi",
+      "tooManyRows": "Faylda qatorlar soni juda ko‘p"
+    }
+  },
   "reports": {
     "title": "Hisobotlar",
     "from": "Dan",
@@ -178,5 +200,51 @@
     "revenue": "Savdo",
     "profit": "Foyda",
     "noData": "Tanlangan davr uchun ma’lumot yo‘q"
+  },
+  "users": {
+    "title": "Foydalanuvchilar",
+    "new": "Yangi foydalanuvchi",
+    "edit": "Foydalanuvchini tahrirlash",
+    "name": "Ismi",
+    "email": "Email",
+    "password": "Parol",
+    "role": "Rol",
+    "you": "Siz",
+    "resetPassword": "Parolni tiklash",
+    "resetPasswordDescription": "{name} uchun yangi parol o‘rnating. Ular barcha qurilmalarda tizimdan chiqariladi.",
+    "newPassword": "Yangi parol",
+    "errors": {
+      "lastAdmin": "Oxirgi faol administratorni o‘chirib bo‘lmaydi yoki lavozimini pasaytirib bo‘lmaydi"
+    }
+  },
+  "settings": {
+    "title": "Sozlamalar",
+    "backup": "Zaxira nusxa",
+    "backupDescription": "Butun bazaning to‘liq zaxira nusxasini (.dump fayl) yuklab oling.",
+    "downloadBackup": "Zaxira nusxani yuklab olish",
+    "restore": "Tiklash",
+    "restoreDescription": "Avval yuklab olingan zaxira nusxadan bazani tiklang.",
+    "restoreWarning": "Diqqat: bu amal joriy barcha ma’lumotlarni tanlangan zaxira nusxadagi ma’lumotlar bilan almashtiradi. Bu amalni ortga qaytarib bo‘lmaydi.",
+    "backupFile": "Zaxira fayl (.dump)",
+    "typeToConfirm": "Tasdiqlash uchun \"{phrase}\" so‘zini kiriting",
+    "restoring": "Tiklanmoqda…",
+    "restoreSuccess": "Tiklash yakunlandi. Tizimga qayta kirishingiz kerak bo‘ladi.",
+    "errors": {
+      "confirmation": "Tasdiqlash matni noto‘g‘ri",
+      "missingFile": "Fayl tanlanmagan",
+      "restoreFailed": "Tiklashda xatolik yuz berdi"
+    }
+  },
+  "profile": {
+    "title": "Profil",
+    "accountInfo": "Hisob ma’lumotlari",
+    "email": "Email",
+    "role": "Rol",
+    "name": "Ismi",
+    "changePassword": "Parolni o‘zgartirish",
+    "currentPassword": "Joriy parol",
+    "newPassword": "Yangi parol",
+    "confirmPassword": "Yangi parolni tasdiqlang",
+    "passwordChanged": "Parol muvaffaqiyatli o‘zgartirildi. Tizimga qayta kirasiz…"
   }
 }

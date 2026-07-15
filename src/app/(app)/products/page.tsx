@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Plus, Search } from "lucide-react";
+import { Plus, Search, Upload } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ExportButtons } from "@/components/export-buttons";
 import { AdjustStockDialog } from "./adjust-stock-dialog";
 import { setProductActive } from "./actions";
 
@@ -19,6 +20,7 @@ export default async function ProductsPage({
   const { q, category } = await searchParams;
   const t = await getTranslations("products");
   const tCommon = await getTranslations("common");
+  const tExport = await getTranslations("export");
 
   const [products, categories] = await Promise.all([
     prisma.product.findMany({
@@ -49,12 +51,25 @@ export default async function ProductsPage({
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-2xl font-semibold">{t("title")}</h1>
-        {canWrite && (
-          <Button render={<Link href="/products/new" />}>
-            <Plus />
-            {t("new")}
-          </Button>
-        )}
+        <div className="flex flex-wrap items-center gap-2">
+          <ExportButtons
+            baseHref="/api/export/products"
+            excelLabel={tExport("excel")}
+            pdfLabel={tExport("pdf")}
+          />
+          {canWrite && (
+            <Button variant="outline" render={<Link href="/products/import" />}>
+              <Upload />
+              {t("import")}
+            </Button>
+          )}
+          {canWrite && (
+            <Button render={<Link href="/products/new" />}>
+              <Plus />
+              {t("new")}
+            </Button>
+          )}
+        </div>
       </div>
 
       <form className="flex flex-wrap items-center gap-2">

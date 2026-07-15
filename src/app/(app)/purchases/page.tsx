@@ -5,12 +5,14 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ExportButtons } from "@/components/export-buttons";
 
 const LIST_LIMIT = 100;
 
 export default async function PurchasesPage() {
   const session = await auth();
   const t = await getTranslations("purchases");
+  const tExport = await getTranslations("export");
 
   const purchases = await prisma.purchase.findMany({
     orderBy: { createdAt: "desc" },
@@ -32,12 +34,19 @@ export default async function PurchasesPage() {
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-2xl font-semibold">{t("title")}</h1>
-        {canWrite && (
-          <Button render={<Link href="/purchases/new" />}>
-            <Plus />
-            {t("new")}
-          </Button>
-        )}
+        <div className="flex flex-wrap items-center gap-2">
+          <ExportButtons
+            baseHref="/api/export/purchases"
+            excelLabel={tExport("excel")}
+            pdfLabel={tExport("pdf")}
+          />
+          {canWrite && (
+            <Button render={<Link href="/purchases/new" />}>
+              <Plus />
+              {t("new")}
+            </Button>
+          )}
+        </div>
       </div>
 
       <div className="overflow-x-auto rounded-md border">

@@ -25,6 +25,10 @@ RUN npm run build
 FROM node:22-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
+# postgresql16-client provides pg_dump/pg_restore for the in-app
+# backup/restore feature — version-matched to the postgres:16-alpine service
+# in docker-compose.yml.
+RUN apk add --no-cache postgresql16-client
 RUN addgroup -g 1001 -S nodejs && adduser -S nextjs -u 1001
 
 COPY --from=deps-prod /app/node_modules ./node_modules

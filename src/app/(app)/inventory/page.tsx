@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ExportButtons } from "@/components/export-buttons";
 
 const HISTORY_LIMIT = 200;
 
@@ -14,7 +15,7 @@ export default async function InventoryHistoryPage({
   const session = await auth();
   const { product: productId } = await searchParams;
   const t = await getTranslations("inventory");
-  const tNav = await getTranslations("nav");
+  const tExport = await getTranslations("export");
 
   const entries = await prisma.inventoryHistory.findMany({
     where: productId ? { productId } : undefined,
@@ -36,7 +37,14 @@ export default async function InventoryHistoryPage({
 
   return (
     <div className="flex flex-col gap-4">
-      <h1 className="text-2xl font-semibold">{tNav("inventory")}</h1>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h1 className="text-2xl font-semibold">{t("title")}</h1>
+        <ExportButtons
+          baseHref="/api/export/inventory-history"
+          excelLabel={tExport("excel")}
+          pdfLabel={tExport("pdf")}
+        />
+      </div>
 
       <div className="overflow-x-auto rounded-md border">
         <Table>
