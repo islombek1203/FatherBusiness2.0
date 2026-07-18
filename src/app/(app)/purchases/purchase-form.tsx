@@ -73,7 +73,10 @@ export function PurchaseForm({
 
       <div className="flex flex-col gap-2">
         <Label htmlFor="supplierId">{t("supplier")}</Label>
-        <Select name="supplierId">
+        <Select
+          name="supplierId"
+          items={suppliers.map((supplier) => ({ value: supplier.id, label: supplier.name }))}
+        >
           <SelectTrigger id="supplierId" className="w-full" aria-invalid={!!fieldErrors?.supplierId}>
             <SelectValue placeholder={t("selectSupplier")} />
           </SelectTrigger>
@@ -106,6 +109,10 @@ export function PurchaseForm({
                 <Select
                   value={row.productId}
                   onValueChange={(value) => updateRow(index, { productId: value ?? "" })}
+                  items={products.map((product) => ({
+                    value: product.id,
+                    label: `${product.name} (${product.sku})`,
+                  }))}
                 >
                   <SelectTrigger className="w-full" data-testid="item-product-select">
                     <SelectValue placeholder={t("selectProduct")} />

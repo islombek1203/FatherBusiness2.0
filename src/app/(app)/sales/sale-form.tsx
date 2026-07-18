@@ -95,7 +95,14 @@ export function SaleForm({
               >
                 <div className="flex flex-1 flex-col gap-1.5">
                   <Label className="text-xs">{t("product")}</Label>
-                  <Select value={row.productId} onValueChange={(value) => selectProduct(index, value ?? "")}>
+                  <Select
+                    value={row.productId}
+                    onValueChange={(value) => selectProduct(index, value ?? "")}
+                    items={products.map((p) => ({
+                      value: p.id,
+                      label: `${p.name} (${p.sku}) — ${p.currentStock} ${p.unit}`,
+                    }))}
+                  >
                     <SelectTrigger className="w-full" data-testid="item-product-select">
                       <SelectValue placeholder={t("selectProduct")} />
                     </SelectTrigger>

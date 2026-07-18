@@ -82,7 +82,14 @@ export function UserForm({
 
       <div className="flex flex-col gap-2">
         <Label htmlFor="role">{t("role")}</Label>
-        <Select name="role" defaultValue={defaultValues?.role ?? "STAFF"}>
+        <Select
+          name="role"
+          defaultValue={defaultValues?.role ?? "STAFF"}
+          items={(["ADMIN", "STAFF", "VIEWER"] as const).map((role) => ({
+            value: role,
+            label: tRoles(role),
+          }))}
+        >
           <SelectTrigger id="role" className="w-full">
             <SelectValue />
           </SelectTrigger>

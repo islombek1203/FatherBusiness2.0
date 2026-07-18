@@ -72,7 +72,11 @@ export function ProductForm({
       </div>
       <div className="flex flex-col gap-2">
         <Label htmlFor="categoryId">{t("category")}</Label>
-        <Select name="categoryId" defaultValue={defaultValues?.categoryId}>
+        <Select
+          name="categoryId"
+          defaultValue={defaultValues?.categoryId}
+          items={categories.map((category) => ({ value: category.id, label: category.name }))}
+        >
           <SelectTrigger id="categoryId" className="w-full" aria-invalid={!!fieldErrors?.categoryId}>
             <SelectValue placeholder={t("selectCategory")} />
           </SelectTrigger>
