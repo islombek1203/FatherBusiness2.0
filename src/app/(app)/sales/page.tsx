@@ -3,9 +3,10 @@ import { Plus } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ExportButtons } from "@/components/export-buttons";
+import { formatCurrency } from "@/lib/format";
 
 const LIST_LIMIT = 100;
 
@@ -25,10 +26,6 @@ export default async function SalesPage() {
     dateStyle: "medium",
     timeStyle: "short",
   });
-  const currencyFormatter = new Intl.NumberFormat(session!.user.locale === "UZ_LATN" ? "uz-Latn" : "uz-Cyrl", {
-    style: "currency",
-    currency: "USD",
-  });
 
   return (
     <div className="flex flex-col gap-4">
@@ -37,10 +34,10 @@ export default async function SalesPage() {
         <div className="flex flex-wrap items-center gap-2">
           <ExportButtons baseHref="/api/export/sales" excelLabel={tExport("excel")} pdfLabel={tExport("pdf")} />
           {canWrite && (
-            <Button render={<Link href="/sales/new" />}>
+            <Link href="/sales/new" className={buttonVariants()}>
               <Plus />
               {t("new")}
-            </Button>
+            </Link>
           )}
         </div>
       </div>
@@ -70,9 +67,9 @@ export default async function SalesPage() {
                   {dateFormatter.format(sale.createdAt)}
                 </TableCell>
                 <TableCell>{sale.items.length}</TableCell>
-                <TableCell>{currencyFormatter.format(Number(sale.totalAmount))}</TableCell>
+                <TableCell>{formatCurrency(sale.totalAmount.toString(), session!.user.locale)}</TableCell>
                 <TableCell className="text-emerald-700 dark:text-emerald-400">
-                  {currencyFormatter.format(Number(sale.totalProfit))}
+                  {formatCurrency(sale.totalProfit.toString(), session!.user.locale)}
                 </TableCell>
                 <TableCell className="text-muted-foreground hidden sm:table-cell">{sale.user.name}</TableCell>
               </TableRow>

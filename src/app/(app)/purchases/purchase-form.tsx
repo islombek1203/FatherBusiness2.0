@@ -16,8 +16,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { ActionResult } from "@/lib/action-result";
+import { STOCK_LOCATIONS } from "@/lib/validation/product";
+import type { StockLocation } from "@/generated/prisma/enums";
 
-type Row = { productId: string; quantity: string; unitCost: string };
+type Row = { productId: string; location: StockLocation; quantity: string; unitCost: string };
+type ProductOption = { id: string; name: string; sku: string; color: string };
 
 function SubmitButton() {
   const t = useTranslations("common");
@@ -36,23 +39,27 @@ export function PurchaseForm({
 }: {
   action: (prevState: ActionResult, formData: FormData) => Promise<ActionResult>;
   suppliers: { id: string; name: string }[];
-  products: { id: string; name: string; sku: string; unit: string }[];
+  products: ProductOption[];
 }) {
   const t = useTranslations("purchases");
   const tCommon = useTranslations("common");
   const tErrors = useTranslations("formErrors");
   const [state, formAction] = useActionState<ActionResult, FormData>(action, { ok: false, error: "idle" });
-  const [rows, setRows] = useState<Row[]>([{ productId: "", quantity: "1", unitCost: "" }]);
+  const [rows, setRows] = useState<Row[]>([{ productId: "", location: "STORE", quantity: "1", unitCost: "" }]);
 
   const fieldErrors = !state.ok ? state.fieldErrors : undefined;
   const itemsError = fieldErrors?.items?.[0];
+
+  function productLabel(product: ProductOption) {
+    return `${product.name} (${tCommon(`colors.${product.color}`)}) (${product.sku})`;
+  }
 
   function updateRow(index: number, patch: Partial<Row>) {
     setRows((prev) => prev.map((row, i) => (i === index ? { ...row, ...patch } : row)));
   }
 
   function addRow() {
-    setRows((prev) => [...prev, { productId: "", quantity: "1", unitCost: "" }]);
+    setRows((prev) => [...prev, { productId: "", location: "STORE", quantity: "1", unitCost: "" }]);
   }
 
   function removeRow(index: number) {
@@ -62,6 +69,7 @@ export function PurchaseForm({
   const serializedItems = JSON.stringify(
     rows.map((row) => ({
       productId: row.productId,
+      location: row.location,
       quantity: Number(row.quantity),
       unitCost: Number(row.unitCost),
     }))
@@ -102,16 +110,16 @@ export function PurchaseForm({
             <div
               key={index}
               data-testid="item-row"
-              className="flex flex-col gap-2 rounded-md border p-3 sm:flex-row sm:items-end"
+              className="flex flex-col gap-2 rounded-md border p-3 sm:flex-row sm:items-end sm:flex-wrap"
             >
-              <div className="flex flex-1 flex-col gap-1.5">
+              <div className="flex flex-1 flex-col gap-1.5 sm:min-w-48">
                 <Label className="text-xs">{t("product")}</Label>
                 <Select
                   value={row.productId}
                   onValueChange={(value) => updateRow(index, { productId: value ?? "" })}
                   items={products.map((product) => ({
                     value: product.id,
-                    label: `${product.name} (${product.sku})`,
+                    label: productLabel(product),
                   }))}
                 >
                   <SelectTrigger className="w-full" data-testid="item-product-select">
@@ -120,7 +128,26 @@ export function PurchaseForm({
                   <SelectContent>
                     {products.map((product) => (
                       <SelectItem key={product.id} value={product.id}>
-                        {product.name} ({product.sku})
+                        {productLabel(product)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex flex-col gap-1.5 sm:w-36">
+                <Label className="text-xs">{t("location")}</Label>
+                <Select
+                  value={row.location}
+                  onValueChange={(value) => value && updateRow(index, { location: value as StockLocation })}
+                  items={STOCK_LOCATIONS.map((location) => ({ value: location, label: tCommon(`locations.${location}`) }))}
+                >
+                  <SelectTrigger className="w-full" data-testid="item-location-select">
+                    <SelectValue placeholder={t("selectLocation")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {STOCK_LOCATIONS.map((location) => (
+                      <SelectItem key={location} value={location}>
+                        {tCommon(`locations.${location}`)}
                       </SelectItem>
                     ))}
                   </SelectContent>

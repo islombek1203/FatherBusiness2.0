@@ -4,6 +4,7 @@ import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 import { Toaster } from "@/components/ui/sonner";
 import { RegisterServiceWorker } from "@/components/register-service-worker";
+import { SessionRevalidator } from "@/components/session-revalidator";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -52,6 +53,7 @@ export default async function RootLayout({
           {children}
           <Toaster />
           <RegisterServiceWorker />
+          <SessionRevalidator />
         </NextIntlClientProvider>
       </body>
     </html>

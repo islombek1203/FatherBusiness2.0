@@ -3,7 +3,9 @@ import {
   BarChart3,
   History,
   LayoutDashboard,
+  Layers,
   Package,
+  Receipt,
   Settings,
   ShoppingCart,
   Tags,
@@ -23,6 +25,8 @@ export type NavItem = {
     | "inventory"
     | "purchases"
     | "sales"
+    | "expenses"
+    | "expenseTypes"
     | "reports"
     | "users"
     | "settings";
@@ -38,6 +42,8 @@ export const navItems: NavItem[] = [
   { href: "/suppliers", labelKey: "suppliers", icon: Truck },
   { href: "/purchases", labelKey: "purchases", icon: Wallet },
   { href: "/sales", labelKey: "sales", icon: ShoppingCart },
+  { href: "/expenses", labelKey: "expenses", icon: Receipt },
+  { href: "/expense-types", labelKey: "expenseTypes", icon: Layers },
   { href: "/inventory", labelKey: "inventory", icon: History },
   { href: "/reports", labelKey: "reports", icon: BarChart3 },
   { href: "/users", labelKey: "users", icon: Users, roles: ["ADMIN"] },

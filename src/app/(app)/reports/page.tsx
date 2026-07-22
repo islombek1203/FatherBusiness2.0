@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { getBusinessMonthRange } from "@/lib/date-range";
+import { formatCurrency, UNIT_LABEL } from "@/lib/format";
+import { getTotalStock } from "@/lib/stock";
 
 function toDateInputValue(date: Date): string {
   return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Tashkent" }).format(date);
@@ -20,6 +22,8 @@ export default async function ReportsPage({
   const session = await auth();
   const { from, to, category } = await searchParams;
   const t = await getTranslations("reports");
+  const tCommon = await getTranslations("common");
+  const tProducts = await getTranslations("products");
 
   const defaultRange = getBusinessMonthRange();
   const parsedStart = from ? new Date(`${from}T00:00:00+05:00`) : null;
@@ -29,7 +33,7 @@ export default async function ReportsPage({
   const rangeStart = parsedStart && !Number.isNaN(parsedStart.getTime()) ? parsedStart : defaultRange.start;
   const rangeEnd = parsedEnd && !Number.isNaN(parsedEnd.getTime()) ? parsedEnd : defaultRange.end;
 
-  const [items, categories] = await Promise.all([
+  const [items, categories, stockProducts] = await Promise.all([
     prisma.saleItem.findMany({
       where: {
         sale: { createdAt: { gte: rangeStart, lt: rangeEnd } },
@@ -38,14 +42,27 @@ export default async function ReportsPage({
       include: { product: true },
     }),
     prisma.category.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true } }),
+    prisma.product.findMany({
+      where: { isActive: true, categoryId: category || undefined },
+      orderBy: { name: "asc" },
+    }),
   ]);
 
-  type Row = { productId: string; name: string; sku: string; quantity: number; revenue: number; profit: number };
+  type Row = {
+    productId: string;
+    name: string;
+    color: string;
+    sku: string;
+    quantity: number;
+    revenue: number;
+    profit: number;
+  };
   const byProduct = new Map<string, Row>();
   for (const item of items) {
     const existing = byProduct.get(item.productId) ?? {
       productId: item.productId,
       name: item.product.name,
+      color: item.product.color,
       sku: item.product.sku,
       quantity: 0,
       revenue: 0,
@@ -65,11 +82,6 @@ export default async function ReportsPage({
     }),
     { revenue: 0, profit: 0, quantity: 0 }
   );
-
-  const currencyFormatter = new Intl.NumberFormat(session!.user.locale === "UZ_LATN" ? "uz-Latn" : "uz-Cyrl", {
-    style: "currency",
-    currency: "USD",
-  });
 
   return (
     <div className="flex flex-col gap-4">
@@ -116,7 +128,7 @@ export default async function ReportsPage({
             <CardTitle className="text-muted-foreground text-xs font-medium">{t("totalRevenue")}</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-xl font-semibold">{currencyFormatter.format(totals.revenue)}</p>
+            <p className="text-xl font-semibold">{formatCurrency(totals.revenue, session!.user.locale)}</p>
           </CardContent>
         </Card>
         <Card>
@@ -124,7 +136,7 @@ export default async function ReportsPage({
             <CardTitle className="text-muted-foreground text-xs font-medium">{t("totalProfit")}</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-xl font-semibold">{currencyFormatter.format(totals.profit)}</p>
+            <p className="text-xl font-semibold">{formatCurrency(totals.profit, session!.user.locale)}</p>
           </CardContent>
         </Card>
         <Card>
@@ -132,7 +144,9 @@ export default async function ReportsPage({
             <CardTitle className="text-muted-foreground text-xs font-medium">{t("unitsSold")}</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-xl font-semibold">{totals.quantity}</p>
+            <p className="text-xl font-semibold">
+              {totals.quantity} {UNIT_LABEL}
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -158,12 +172,55 @@ export default async function ReportsPage({
             {rows.map((row) => (
               <TableRow key={row.productId}>
                 <TableCell className="font-medium">
-                  {row.name} <span className="text-muted-foreground font-mono text-xs">({row.sku})</span>
+                  {row.name} ({tCommon(`colors.${row.color}`)}){" "}
+                  <span className="text-muted-foreground font-mono text-xs">({row.sku})</span>
                 </TableCell>
-                <TableCell>{row.quantity}</TableCell>
-                <TableCell>{currencyFormatter.format(row.revenue)}</TableCell>
+                <TableCell>
+                  {row.quantity} {UNIT_LABEL}
+                </TableCell>
+                <TableCell>{formatCurrency(row.revenue, session!.user.locale)}</TableCell>
                 <TableCell className="text-emerald-700 dark:text-emerald-400">
-                  {currencyFormatter.format(row.profit)}
+                  {formatCurrency(row.profit, session!.user.locale)}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+
+      <h2 className="text-xl font-semibold">{t("stockByLocation")}</h2>
+      <div className="overflow-x-auto rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>{t("product")}</TableHead>
+              <TableHead>{tProducts("storeStock")}</TableHead>
+              <TableHead>{tProducts("homeStock")}</TableHead>
+              <TableHead>{tProducts("totalStock")}</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {stockProducts.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={4} className="text-muted-foreground text-center">
+                  {t("noData")}
+                </TableCell>
+              </TableRow>
+            )}
+            {stockProducts.map((product) => (
+              <TableRow key={product.id}>
+                <TableCell className="font-medium">
+                  {product.name} ({tCommon(`colors.${product.color}`)}){" "}
+                  <span className="text-muted-foreground font-mono text-xs">({product.sku})</span>
+                </TableCell>
+                <TableCell>
+                  {product.storeStock} {UNIT_LABEL}
+                </TableCell>
+                <TableCell>
+                  {product.homeStock} {UNIT_LABEL}
+                </TableCell>
+                <TableCell className="font-medium">
+                  {getTotalStock(product)} {UNIT_LABEL}
                 </TableCell>
               </TableRow>
             ))}

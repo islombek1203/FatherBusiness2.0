@@ -15,14 +15,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { ActionResult } from "@/lib/action-result";
+import { UNIT_LABEL } from "@/lib/format";
+import { PRODUCT_COLORS, STOCK_LOCATIONS } from "@/lib/validation/product";
 
 type ProductDefaults = {
   sku: string;
   name: string;
   description: string | null;
-  unit: string;
   sellingPrice: string;
   categoryId: string;
+  color: (typeof PRODUCT_COLORS)[number];
 };
 
 function SubmitButton() {
@@ -55,6 +57,8 @@ export function ProductForm({
   defaultValues?: ProductDefaults;
 }) {
   const t = useTranslations("products");
+  const tColors = useTranslations("common.colors");
+  const tLocations = useTranslations("common.locations");
   const [state, formAction] = useActionState<ActionResult, FormData>(action, { ok: true });
   const fieldErrors = !state.ok ? state.fieldErrors : undefined;
 
@@ -90,26 +94,84 @@ export function ProductForm({
         </Select>
         <FieldError messages={fieldErrors?.categoryId} />
       </div>
-      <div className="grid grid-cols-2 gap-4">
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="unit">{t("unit")}</Label>
-          <Input id="unit" name="unit" defaultValue={defaultValues?.unit ?? "dona"} required />
-        </div>
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="sellingPrice">{t("sellingPrice")}</Label>
-          <Input
-            id="sellingPrice"
-            name="sellingPrice"
-            type="number"
-            step="0.01"
-            min="0"
-            defaultValue={defaultValues?.sellingPrice}
-            required
-            aria-invalid={!!fieldErrors?.sellingPrice}
-          />
-          <FieldError messages={fieldErrors?.sellingPrice} />
-        </div>
+      <div className="flex flex-col gap-2">
+        <Label htmlFor="color">{t("color")}</Label>
+        <Select
+          name="color"
+          defaultValue={defaultValues?.color}
+          items={PRODUCT_COLORS.map((color) => ({ value: color, label: tColors(color) }))}
+        >
+          <SelectTrigger id="color" className="w-full" aria-invalid={!!fieldErrors?.color}>
+            <SelectValue placeholder={t("selectColor")} />
+          </SelectTrigger>
+          <SelectContent>
+            {PRODUCT_COLORS.map((color) => (
+              <SelectItem key={color} value={color}>
+                {tColors(color)}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <FieldError messages={fieldErrors?.color} />
       </div>
+      <div className="flex flex-col gap-2">
+        <Label htmlFor="unit">{t("unit")}</Label>
+        <Input id="unit" name="unit" value={UNIT_LABEL} disabled readOnly />
+      </div>
+      <div className="flex flex-col gap-2">
+        <Label htmlFor="sellingPrice">{t("sellingPrice")}</Label>
+        <Input
+          id="sellingPrice"
+          name="sellingPrice"
+          type="number"
+          step="0.01"
+          min="0"
+          defaultValue={defaultValues?.sellingPrice}
+          required
+          aria-invalid={!!fieldErrors?.sellingPrice}
+        />
+        <FieldError messages={fieldErrors?.sellingPrice} />
+      </div>
+      {!defaultValues && (
+        // Create-only: how many you already have on hand. Editing an
+        // existing product's stock goes through "Adjust stock" instead,
+        // which keeps a reason and shows up in the inventory history —
+        // silently changing it from the edit form would bypass that trail.
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="initialStock">{t("initialStock")}</Label>
+          <Input
+            id="initialStock"
+            name="initialStock"
+            type="number"
+            step="1"
+            min="0"
+            defaultValue="0"
+            aria-invalid={!!fieldErrors?.initialStock}
+          />
+          <FieldError messages={fieldErrors?.initialStock} />
+        </div>
+      )}
+      {!defaultValues && (
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="initialStockLocation">{t("location")}</Label>
+          <Select
+            name="initialStockLocation"
+            defaultValue="STORE"
+            items={STOCK_LOCATIONS.map((location) => ({ value: location, label: tLocations(location) }))}
+          >
+            <SelectTrigger id="initialStockLocation" className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {STOCK_LOCATIONS.map((location) => (
+                <SelectItem key={location} value={location}>
+                  {tLocations(location)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
       <div className="flex flex-col gap-2">
         <Label htmlFor="description">{t("description")}</Label>
         <Textarea id="description" name="description" defaultValue={defaultValues?.description ?? ""} rows={3} />

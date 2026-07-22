@@ -1,7 +1,14 @@
 import { prisma } from "@/lib/prisma";
+import type { StockLocation } from "@/generated/prisma/enums";
+
+const STOCK_COLUMN: Record<StockLocation, "storeStock" | "homeStock"> = {
+  STORE: "storeStock",
+  HOME: "homeStock",
+};
 
 export type PurchaseItemInput = {
   productId: string;
+  location: StockLocation;
   quantity: number;
   unitCost: number;
 };
@@ -28,18 +35,20 @@ export async function recordPurchase({
 
     for (const item of items) {
       const product = await tx.product.findUniqueOrThrow({ where: { id: item.productId } });
-      const quantityBefore = product.currentStock;
+      const column = STOCK_COLUMN[item.location];
+      const quantityBefore = product[column];
       const quantityAfter = quantityBefore + item.quantity;
 
       await tx.product.update({
         where: { id: item.productId },
-        data: { currentStock: quantityAfter, lastPurchasePrice: item.unitCost },
+        data: { [column]: quantityAfter, lastPurchasePrice: item.unitCost },
       });
 
       await tx.purchaseItem.create({
         data: {
           purchaseId: purchase.id,
           productId: item.productId,
+          location: item.location,
           quantity: item.quantity,
           unitCost: item.unitCost,
         },
@@ -49,6 +58,7 @@ export async function recordPurchase({
         data: {
           productId: item.productId,
           type: "PURCHASE",
+          location: item.location,
           quantityBefore,
           quantityAfter,
           userId,

@@ -4,7 +4,7 @@ import { getTranslations } from "next-intl/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { setSupplierActive } from "./actions";
@@ -39,10 +39,10 @@ export default async function SuppliersPage({
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-2xl font-semibold">{t("title")}</h1>
         {canWrite && (
-          <Button render={<Link href="/suppliers/new" />}>
+          <Link href="/suppliers/new" className={buttonVariants()}>
             <Plus />
             {t("new")}
-          </Button>
+          </Link>
         )}
       </div>
 
@@ -84,9 +84,12 @@ export default async function SuppliersPage({
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
                     {canWrite && (
-                      <Button variant="ghost" size="sm" render={<Link href={`/suppliers/${supplier.id}/edit`} />}>
+                      <Link
+                        href={`/suppliers/${supplier.id}/edit`}
+                        className={buttonVariants({ variant: "ghost", size: "sm" })}
+                      >
                         {tCommon("edit")}
-                      </Button>
+                      </Link>
                     )}
                     {canWrite && (
                       <form

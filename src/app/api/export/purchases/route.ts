@@ -11,6 +11,7 @@ type Row = {
   date: string;
   supplier: string;
   product: string;
+  location: string;
   quantity: number;
   unitCost: string;
   lineTotal: string;
@@ -21,8 +22,9 @@ export async function GET(request: NextRequest) {
   const user = await requireUser();
   const format = request.nextUrl.searchParams.get("format") === "pdf" ? "pdf" : "xlsx";
 
-  const [t, tExport, locale] = await Promise.all([
+  const [t, tCommon, tExport, locale] = await Promise.all([
     getTranslations("purchases"),
+    getTranslations("common"),
     getTranslations("export"),
     getLocale(),
   ]);
@@ -31,6 +33,7 @@ export async function GET(request: NextRequest) {
     { header: t("date"), accessor: (r) => r.date },
     { header: t("supplier"), accessor: (r) => r.supplier },
     { header: t("product"), accessor: (r) => r.product },
+    { header: t("location"), accessor: (r) => r.location },
     { header: t("quantity"), accessor: (r) => String(r.quantity) },
     { header: t("unitCost"), accessor: (r) => r.unitCost },
     { header: t("total"), accessor: (r) => r.lineTotal },
@@ -51,7 +54,8 @@ export async function GET(request: NextRequest) {
     purchase.items.map((item) => ({
       date: dateFormatter.format(purchase.createdAt),
       supplier: purchase.supplier.name,
-      product: item.product.name,
+      product: `${item.product.name} (${tCommon(`colors.${item.product.color}`)})`,
+      location: tCommon(`locations.${item.location}`),
       quantity: item.quantity,
       unitCost: item.unitCost.toString(),
       lineTotal: (item.quantity * Number(item.unitCost)).toFixed(2),

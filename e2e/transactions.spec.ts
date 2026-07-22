@@ -28,7 +28,8 @@ test.describe("purchases and sales", () => {
     await page.locator("#name").fill(productName);
     await page.locator("#categoryId").click();
     await page.getByRole("option", { name: categoryName }).click();
-    await page.locator("#unit").fill("dona");
+    await page.locator("#color").click();
+    await page.getByRole("option").first().click();
     await page.locator("#sellingPrice").fill("10000");
     await page.locator("form button[type=submit]").click();
     await expect(page).toHaveURL("/products");
@@ -68,13 +69,13 @@ test.describe("purchases and sales", () => {
     await expect(page.getByRole("row", { name: new RegExp(sku) })).toContainText("15 dona");
 
     await page.goto("/inventory");
-    await expect(page.getByRole("cell", { name: productName, exact: true }).first()).toBeVisible();
+    await expect(page.getByRole("cell", { name: new RegExp(productName) }).first()).toBeVisible();
 
     await page.goto("/");
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   });
 
-  test("a product with zero stock cannot be selected on the new-sale form", async ({ page }) => {
+  test("a zero-stock product is selectable but overselling it is rejected server-side", async ({ page }) => {
     const stamp = Date.now();
     const categoryName = `Stock Limit Category ${stamp}`;
     const sku = `LIMIT-${stamp}`;
@@ -90,15 +91,26 @@ test.describe("purchases and sales", () => {
     await page.locator("#name").fill(productName);
     await page.locator("#categoryId").click();
     await page.getByRole("option", { name: categoryName }).click();
-    await page.locator("#unit").fill("dona");
+    await page.locator("#color").click();
+    await page.getByRole("option").first().click();
     await page.locator("#sellingPrice").fill("1000");
     await page.locator("form button[type=submit]").click();
+    await expect(page).toHaveURL("/products");
 
-    // The new-sale product list only includes products with stock > 0, so a
-    // freshly created (zero-stock) product must never appear as an option —
-    // this is the server-side guarantee behind InsufficientStockError.
+    // The new-sale product list includes every active product, even ones
+    // currently out of stock (a freshly created product has none until a
+    // purchase is recorded) — hiding it here made the selector look broken.
+    // Overselling is still prevented, just server-side: recordSale()
+    // re-checks currentStock inside its transaction and throws
+    // InsufficientStockError, which the form surfaces as an inline error.
     await page.goto("/sales/new");
-    await page.getByTestId("item-row").first().getByTestId("item-product-select").click();
-    await expect(page.getByRole("option", { name: new RegExp(sku) })).toHaveCount(0);
+    const saleRow = page.getByTestId("item-row").first();
+    await saleRow.getByTestId("item-product-select").click();
+    await expect(page.getByRole("option", { name: new RegExp(sku) })).toHaveCount(1);
+    await page.getByRole("option", { name: new RegExp(sku) }).click();
+    await saleRow.getByTestId("item-quantity").fill("1");
+    await page.locator("form button[type=submit]").click();
+    await expect(page.getByRole("alert")).toBeVisible();
+    await expect(page).toHaveURL("/sales/new");
   });
 });

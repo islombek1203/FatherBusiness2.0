@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { FileSpreadsheet, FileText } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 
 export function ExportButtons({
   baseHref,
@@ -13,14 +13,22 @@ export function ExportButtons({
 }) {
   return (
     <div className="flex gap-2">
-      <Button variant="outline" size="sm" render={<Link href={`${baseHref}?format=xlsx`} prefetch={false} />}>
+      <Link
+        href={`${baseHref}?format=xlsx`}
+        prefetch={false}
+        className={buttonVariants({ variant: "outline", size: "sm" })}
+      >
         <FileSpreadsheet />
         {excelLabel}
-      </Button>
-      <Button variant="outline" size="sm" render={<Link href={`${baseHref}?format=pdf`} prefetch={false} />}>
+      </Link>
+      <Link
+        href={`${baseHref}?format=pdf`}
+        prefetch={false}
+        className={buttonVariants({ variant: "outline", size: "sm" })}
+      >
         <FileText />
         {pdfLabel}
-      </Button>
+      </Link>
     </div>
   );
 }

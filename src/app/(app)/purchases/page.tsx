@@ -3,9 +3,10 @@ import { Plus } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ExportButtons } from "@/components/export-buttons";
+import { formatCurrency } from "@/lib/format";
 
 const LIST_LIMIT = 100;
 
@@ -25,10 +26,6 @@ export default async function PurchasesPage() {
     dateStyle: "medium",
     timeStyle: "short",
   });
-  const currencyFormatter = new Intl.NumberFormat(session!.user.locale === "UZ_LATN" ? "uz-Latn" : "uz-Cyrl", {
-    style: "currency",
-    currency: "USD",
-  });
 
   return (
     <div className="flex flex-col gap-4">
@@ -41,10 +38,10 @@ export default async function PurchasesPage() {
             pdfLabel={tExport("pdf")}
           />
           {canWrite && (
-            <Button render={<Link href="/purchases/new" />}>
+            <Link href="/purchases/new" className={buttonVariants()}>
               <Plus />
               {t("new")}
-            </Button>
+            </Link>
           )}
         </div>
       </div>
@@ -75,7 +72,7 @@ export default async function PurchasesPage() {
                 </TableCell>
                 <TableCell className="font-medium">{purchase.supplier.name}</TableCell>
                 <TableCell>{purchase.items.length}</TableCell>
-                <TableCell>{currencyFormatter.format(Number(purchase.totalAmount))}</TableCell>
+                <TableCell>{formatCurrency(purchase.totalAmount.toString(), session!.user.locale)}</TableCell>
                 <TableCell className="text-muted-foreground hidden sm:table-cell">{purchase.user.name}</TableCell>
               </TableRow>
             ))}

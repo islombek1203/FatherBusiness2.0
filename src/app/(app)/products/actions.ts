@@ -4,14 +4,14 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireRole, WRITE_ROLES } from "@/lib/auth-helpers";
-import { productSchema, stockAdjustmentSchema } from "@/lib/validation/product";
+import { productCreateSchema, productSchema, stockAdjustmentSchema } from "@/lib/validation/product";
 import { adjustStock } from "@/lib/inventory";
 import type { ActionResult } from "@/lib/action-result";
 
 export async function createProduct(_prev: ActionResult, formData: FormData): Promise<ActionResult> {
-  await requireRole(WRITE_ROLES);
+  const user = await requireRole(WRITE_ROLES);
 
-  const parsed = productSchema.safeParse(Object.fromEntries(formData));
+  const parsed = productCreateSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) {
     return { ok: false, error: "validation", fieldErrors: parsed.error.flatten().fieldErrors };
   }
@@ -21,8 +21,19 @@ export async function createProduct(_prev: ActionResult, formData: FormData): Pr
     return { ok: false, error: "validation", fieldErrors: { sku: ["duplicate"] } };
   }
 
-  await prisma.product.create({ data: parsed.data });
+  const { initialStock, initialStockLocation, ...productData } = parsed.data;
+  const product = await prisma.product.create({ data: productData });
+  if (initialStock > 0) {
+    await adjustStock({
+      productId: product.id,
+      location: initialStockLocation,
+      quantityAfter: initialStock,
+      note: "Initial stock",
+      userId: user.id,
+    });
+  }
   revalidatePath("/products");
+  revalidatePath("/inventory");
   redirect("/products");
 }
 

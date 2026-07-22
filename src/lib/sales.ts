@@ -1,15 +1,29 @@
 import { prisma } from "@/lib/prisma";
 import { calculateUnitProfit, getProductCost } from "@/lib/costing";
+import type { StockLocation } from "@/generated/prisma/enums";
+
+const STOCK_COLUMN: Record<StockLocation, "storeStock" | "homeStock"> = {
+  STORE: "storeStock",
+  HOME: "homeStock",
+};
 
 export class InsufficientStockError extends Error {
-  constructor(public productId: string, public available: number, public requested: number) {
-    super(`Insufficient stock for product ${productId}: available ${available}, requested ${requested}`);
+  constructor(
+    public productId: string,
+    public location: StockLocation,
+    public available: number,
+    public requested: number
+  ) {
+    super(
+      `Insufficient stock for product ${productId} at ${location}: available ${available}, requested ${requested}`
+    );
     this.name = "InsufficientStockError";
   }
 }
 
 export type SaleItemInput = {
   productId: string;
+  location: StockLocation;
   quantity: number;
   unitPrice: number;
 };
@@ -37,11 +51,16 @@ export async function recordSale({
 
     for (const item of items) {
       const product = await tx.product.findUniqueOrThrow({ where: { id: item.productId } });
-      if (product.currentStock < item.quantity) {
-        throw new InsufficientStockError(item.productId, product.currentStock, item.quantity);
+      const column = STOCK_COLUMN[item.location];
+      const available = product[column];
+      // Checked per location — a color/location with plenty of stock
+      // elsewhere never covers a shortfall at the location actually sold
+      // from.
+      if (available < item.quantity) {
+        throw new InsufficientStockError(item.productId, item.location, available, item.quantity);
       }
 
-      const quantityBefore = product.currentStock;
+      const quantityBefore = available;
       const quantityAfter = quantityBefore - item.quantity;
       const unitCost = getProductCost(product);
       const lineAmount = item.quantity * item.unitPrice;
@@ -51,13 +70,14 @@ export async function recordSale({
 
       await tx.product.update({
         where: { id: item.productId },
-        data: { currentStock: quantityAfter },
+        data: { [column]: quantityAfter },
       });
 
       await tx.saleItem.create({
         data: {
           saleId: sale.id,
           productId: item.productId,
+          location: item.location,
           quantity: item.quantity,
           unitPrice: item.unitPrice,
           unitCost,
@@ -68,6 +88,7 @@ export async function recordSale({
         data: {
           productId: item.productId,
           type: "SALE",
+          location: item.location,
           quantityBefore,
           quantityAfter,
           userId,

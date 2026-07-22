@@ -43,7 +43,8 @@ test.describe("core inventory", () => {
     await page.locator("#name").fill(productName);
     await page.locator("#categoryId").click();
     await page.getByRole("option", { name: categoryName }).click();
-    await page.locator("#unit").fill("dona");
+    await page.locator("#color").click();
+    await page.getByRole("option").first().click();
     await page.locator("#sellingPrice").fill("1000");
     await page.locator("form button[type=submit]").click();
 
@@ -61,6 +62,6 @@ test.describe("core inventory", () => {
     await expect(row).toContainText("25 dona");
 
     await page.goto("/inventory");
-    await expect(page.getByRole("cell", { name: productName, exact: true })).toBeVisible();
+    await expect(page.getByRole("cell", { name: new RegExp(productName) })).toBeVisible();
   });
 });

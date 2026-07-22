@@ -105,6 +105,20 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     // instantly revocable (delete the row = the user is logged out).
     encode: async ({ token }) => {
       if (!token?.sub) return "";
+      // Auth.js re-signs the JWT (calls this) on *every* session read for
+      // the "jwt" strategy, not just at sign-in — there's no updateAge
+      // throttling on this path, unlike its database-session strategy.
+      // That's normally fine (plain JWT signing is cheap), but this
+      // override does a real DB write. `decode` below stamps its result
+      // with the session's existing token, and the `jwt` callback passes
+      // that through unchanged, so any non-login call here already carries
+      // `token.sessionToken` — reuse it instead of minting + persisting a
+      // new row. Without this, every `auth()` call anywhere in the app
+      // (proxy.ts, the layout, every page) inserted a fresh session row:
+      // one real login was observed to leave 28+ orphaned rows behind from
+      // ordinary navigation alone, adding an unnecessary DB write to the
+      // hot path of every request and never cleaning the old rows up.
+      if (typeof token.sessionToken === "string" && token.sessionToken) return token.sessionToken;
       const sessionToken = randomUUID();
       const expires = new Date(Date.now() + SESSION_MAX_AGE_SECONDS * 1000);
       await adapter.createSession!({ sessionToken, userId: token.sub, expires });

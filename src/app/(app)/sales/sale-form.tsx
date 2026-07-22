@@ -16,9 +16,25 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { ActionResult } from "@/lib/action-result";
+import { UNIT_LABEL } from "@/lib/format";
+import { STOCK_LOCATIONS } from "@/lib/validation/product";
+import type { StockLocation } from "@/generated/prisma/enums";
 
-type Row = { productId: string; quantity: string; unitPrice: string };
-type ProductOption = { id: string; name: string; sku: string; unit: string; currentStock: number; sellingPrice: string };
+type Row = { productId: string; location: StockLocation; quantity: string; unitPrice: string };
+type ProductOption = {
+  id: string;
+  name: string;
+  sku: string;
+  color: string;
+  storeStock: number;
+  homeStock: number;
+  sellingPrice: string;
+};
+
+const STOCK_BY_LOCATION: Record<StockLocation, (product: ProductOption) => number> = {
+  STORE: (product) => product.storeStock,
+  HOME: (product) => product.homeStock,
+};
 
 function SubmitButton() {
   const t = useTranslations("common");
@@ -41,11 +57,16 @@ export function SaleForm({
   const tCommon = useTranslations("common");
   const tErrors = useTranslations("formErrors");
   const [state, formAction] = useActionState<ActionResult, FormData>(action, { ok: false, error: "idle" });
-  const [rows, setRows] = useState<Row[]>([{ productId: "", quantity: "1", unitPrice: "" }]);
+  const [rows, setRows] = useState<Row[]>([{ productId: "", location: "STORE", quantity: "1", unitPrice: "" }]);
 
   const fieldErrors = !state.ok ? state.fieldErrors : undefined;
   const itemsError = fieldErrors?.items?.[0];
   const isInsufficientStock = !state.ok && state.error === "insufficientStock";
+
+  function productLabel(product: ProductOption, location: StockLocation) {
+    const stock = STOCK_BY_LOCATION[location](product);
+    return `${product.name} (${tCommon(`colors.${product.color}`)}) (${product.sku}) — ${stock} ${UNIT_LABEL}`;
+  }
 
   function updateRow(index: number, patch: Partial<Row>) {
     setRows((prev) => prev.map((row, i) => (i === index ? { ...row, ...patch } : row)));
@@ -57,7 +78,7 @@ export function SaleForm({
   }
 
   function addRow() {
-    setRows((prev) => [...prev, { productId: "", quantity: "1", unitPrice: "" }]);
+    setRows((prev) => [...prev, { productId: "", location: "STORE", quantity: "1", unitPrice: "" }]);
   }
 
   function removeRow(index: number) {
@@ -67,6 +88,7 @@ export function SaleForm({
   const serializedItems = JSON.stringify(
     rows.map((row) => ({
       productId: row.productId,
+      location: row.location,
       quantity: Number(row.quantity),
       unitPrice: Number(row.unitPrice),
     }))
@@ -87,20 +109,21 @@ export function SaleForm({
         <div className="flex flex-col gap-3">
           {rows.map((row, index) => {
             const product = products.find((p) => p.id === row.productId);
+            const availableAtLocation = product ? STOCK_BY_LOCATION[row.location](product) : undefined;
             return (
               <div
                 key={index}
                 data-testid="item-row"
-                className="flex flex-col gap-2 rounded-md border p-3 sm:flex-row sm:items-end"
+                className="flex flex-col gap-2 rounded-md border p-3 sm:flex-row sm:items-end sm:flex-wrap"
               >
-                <div className="flex flex-1 flex-col gap-1.5">
+                <div className="flex flex-1 flex-col gap-1.5 sm:min-w-48">
                   <Label className="text-xs">{t("product")}</Label>
                   <Select
                     value={row.productId}
                     onValueChange={(value) => selectProduct(index, value ?? "")}
                     items={products.map((p) => ({
                       value: p.id,
-                      label: `${p.name} (${p.sku}) — ${p.currentStock} ${p.unit}`,
+                      label: productLabel(p, row.location),
                     }))}
                   >
                     <SelectTrigger className="w-full" data-testid="item-product-select">
@@ -109,16 +132,38 @@ export function SaleForm({
                     <SelectContent>
                       {products.map((p) => (
                         <SelectItem key={p.id} value={p.id}>
-                          {p.name} ({p.sku}) — {p.currentStock} {p.unit}
+                          {productLabel(p, row.location)}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                   {product && (
                     <span className="text-muted-foreground text-xs">
-                      {t("available")}: {product.currentStock} {product.unit}
+                      {t("available")}: {availableAtLocation} {UNIT_LABEL}
                     </span>
                   )}
+                </div>
+                <div className="flex flex-col gap-1.5 sm:w-36">
+                  <Label className="text-xs">{t("location")}</Label>
+                  <Select
+                    value={row.location}
+                    onValueChange={(value) => value && updateRow(index, { location: value as StockLocation })}
+                    items={STOCK_LOCATIONS.map((location) => ({
+                      value: location,
+                      label: tCommon(`locations.${location}`),
+                    }))}
+                  >
+                    <SelectTrigger className="w-full" data-testid="item-location-select">
+                      <SelectValue placeholder={t("selectLocation")} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {STOCK_LOCATIONS.map((location) => (
+                        <SelectItem key={location} value={location}>
+                          {tCommon(`locations.${location}`)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="flex flex-col gap-1.5 sm:w-28">
                   <Label className="text-xs">{t("quantity")}</Label>
@@ -126,7 +171,7 @@ export function SaleForm({
                     type="number"
                     min="1"
                     step="1"
-                    max={product?.currentStock}
+                    max={availableAtLocation}
                     data-testid="item-quantity"
                     value={row.quantity}
                     onChange={(e) => updateRow(index, { quantity: e.target.value })}

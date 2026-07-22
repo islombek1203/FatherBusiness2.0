@@ -1,31 +1,38 @@
 import Link from "next/link";
 import { Pencil, Plus, Power, PowerOff, Search, Upload } from "lucide-react";
 import { getTranslations } from "next-intl/server";
+import type { Prisma } from "@/generated/prisma/client";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ExportButtons } from "@/components/export-buttons";
+import { formatCurrency, UNIT_LABEL } from "@/lib/format";
+import { getTotalStock } from "@/lib/stock";
 import { AdjustStockDialog } from "./adjust-stock-dialog";
 import { setProductActive } from "./actions";
 
 export default async function ProductsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; category?: string }>;
+  searchParams: Promise<{ q?: string; category?: string; location?: string }>;
 }) {
   const session = await auth();
-  const { q, category } = await searchParams;
+  const { q, category, location } = await searchParams;
   const t = await getTranslations("products");
   const tCommon = await getTranslations("common");
   const tExport = await getTranslations("export");
+
+  const locationStockFilter: Prisma.ProductWhereInput =
+    location === "STORE" ? { storeStock: { gt: 0 } } : location === "HOME" ? { homeStock: { gt: 0 } } : {};
 
   const [products, categories] = await Promise.all([
     prisma.product.findMany({
       where: {
         categoryId: category || undefined,
+        ...locationStockFilter,
         ...(q
           ? {
               OR: [
@@ -42,10 +49,6 @@ export default async function ProductsPage({
   ]);
 
   const canWrite = session!.user.role !== "VIEWER";
-  const currencyFormatter = new Intl.NumberFormat(session!.user.locale === "UZ_LATN" ? "uz-Latn" : "uz-Cyrl", {
-    style: "currency",
-    currency: "USD",
-  });
 
   return (
     <div className="flex flex-col gap-4">
@@ -58,16 +61,16 @@ export default async function ProductsPage({
             pdfLabel={tExport("pdf")}
           />
           {canWrite && (
-            <Button variant="outline" render={<Link href="/products/import" />}>
+            <Link href="/products/import" className={buttonVariants({ variant: "outline" })}>
               <Upload />
               {t("import")}
-            </Button>
+            </Link>
           )}
           {canWrite && (
-            <Button render={<Link href="/products/new" />}>
+            <Link href="/products/new" className={buttonVariants()}>
               <Plus />
               {t("new")}
-            </Button>
+            </Link>
           )}
         </div>
       </div>
@@ -88,6 +91,15 @@ export default async function ProductsPage({
               {c.name}
             </option>
           ))}
+        </select>
+        <select
+          name="location"
+          defaultValue={location ?? ""}
+          className="border-input bg-background h-8 rounded-lg border px-2 text-sm"
+        >
+          <option value="">{t("allLocations")}</option>
+          <option value="STORE">{tCommon("locations.STORE")}</option>
+          <option value="HOME">{tCommon("locations.HOME")}</option>
         </select>
         <Button type="submit" variant="outline" size="sm">
           {tCommon("filter")}
@@ -119,32 +131,45 @@ export default async function ProductsPage({
                 <TableCell className="text-muted-foreground font-mono text-xs">{product.sku}</TableCell>
                 <TableCell className="font-medium">
                   <div className="flex items-center gap-2">
-                    {product.name}
+                    {product.name} ({tCommon(`colors.${product.color}`)})
                     {!product.isActive && <Badge variant="secondary">{tCommon("inactive")}</Badge>}
                   </div>
                 </TableCell>
                 <TableCell className="text-muted-foreground hidden sm:table-cell">
                   {product.category.name}
                 </TableCell>
-                <TableCell>
-                  {product.currentStock} {product.unit}
+                <TableCell className="text-xs whitespace-nowrap">
+                  <div>
+                    {tCommon("locations.STORE")}: {product.storeStock} {UNIT_LABEL}
+                  </div>
+                  <div>
+                    {tCommon("locations.HOME")}: {product.homeStock} {UNIT_LABEL}
+                  </div>
+                  <div className="font-medium">
+                    {t("totalStock")}: {getTotalStock(product)} {UNIT_LABEL}
+                  </div>
                 </TableCell>
                 <TableCell className="hidden md:table-cell">
-                  {currencyFormatter.format(Number(product.sellingPrice))}
+                  {formatCurrency(product.sellingPrice.toString(), session!.user.locale)}
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex flex-wrap justify-end gap-2">
-                    {canWrite && <AdjustStockDialog productId={product.id} currentStock={product.currentStock} />}
                     {canWrite && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
+                      <AdjustStockDialog
+                        productId={product.id}
+                        storeStock={product.storeStock}
+                        homeStock={product.homeStock}
+                      />
+                    )}
+                    {canWrite && (
+                      <Link
+                        href={`/products/${product.id}/edit`}
                         aria-label={tCommon("edit")}
-                        render={<Link href={`/products/${product.id}/edit`} />}
+                        className={buttonVariants({ variant: "ghost", size: "sm" })}
                       >
                         <Pencil />
                         <span className="hidden sm:inline">{tCommon("edit")}</span>
-                      </Button>
+                      </Link>
                     )}
                     {canWrite && (
                       <form

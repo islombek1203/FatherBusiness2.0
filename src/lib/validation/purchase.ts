@@ -1,7 +1,9 @@
 import { z } from "zod";
+import { STOCK_LOCATIONS } from "@/lib/validation/product";
 
 export const purchaseItemSchema = z.object({
   productId: z.string().trim().min(1, "required"),
+  location: z.enum(STOCK_LOCATIONS, "required"),
   quantity: z.coerce.number("required").int("integer").positive("min0"),
   unitCost: z.coerce.number("required").min(0, "min0"),
 });

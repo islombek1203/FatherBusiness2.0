@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ExportButtons } from "@/components/export-buttons";
+import { UNIT_LABEL } from "@/lib/format";
 
 const HISTORY_LIMIT = 200;
 
@@ -15,6 +16,7 @@ export default async function InventoryHistoryPage({
   const session = await auth();
   const { product: productId } = await searchParams;
   const t = await getTranslations("inventory");
+  const tCommon = await getTranslations("common");
   const tExport = await getTranslations("export");
 
   const entries = await prisma.inventoryHistory.findMany({
@@ -53,6 +55,7 @@ export default async function InventoryHistoryPage({
               <TableHead>{t("date")}</TableHead>
               <TableHead>{t("product")}</TableHead>
               <TableHead>{t("type")}</TableHead>
+              <TableHead>{t("location")}</TableHead>
               <TableHead>{t("quantityBefore")}</TableHead>
               <TableHead>{t("quantityAfter")}</TableHead>
               <TableHead className="hidden sm:table-cell">{t("user")}</TableHead>
@@ -62,7 +65,7 @@ export default async function InventoryHistoryPage({
           <TableBody>
             {entries.length === 0 && (
               <TableRow>
-                <TableCell colSpan={7} className="text-muted-foreground text-center">
+                <TableCell colSpan={8} className="text-muted-foreground text-center">
                   {t("noHistory")}
                 </TableCell>
               </TableRow>
@@ -72,12 +75,19 @@ export default async function InventoryHistoryPage({
                 <TableCell className="text-muted-foreground text-xs whitespace-nowrap">
                   {dateFormatter.format(entry.createdAt)}
                 </TableCell>
-                <TableCell className="font-medium">{entry.product.name}</TableCell>
+                <TableCell className="font-medium">
+                  {entry.product.name} ({tCommon(`colors.${entry.product.color}`)})
+                </TableCell>
                 <TableCell>
                   <Badge variant={typeVariant[entry.type]}>{t(`types.${entry.type}`)}</Badge>
                 </TableCell>
-                <TableCell>{entry.quantityBefore}</TableCell>
-                <TableCell>{entry.quantityAfter}</TableCell>
+                <TableCell>{tCommon(`locations.${entry.location}`)}</TableCell>
+                <TableCell>
+                  {entry.quantityBefore} {UNIT_LABEL}
+                </TableCell>
+                <TableCell>
+                  {entry.quantityAfter} {UNIT_LABEL}
+                </TableCell>
                 <TableCell className="text-muted-foreground hidden sm:table-cell">{entry.user.name}</TableCell>
                 <TableCell className="text-muted-foreground hidden max-w-xs truncate md:table-cell">
                   {entry.note}

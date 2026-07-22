@@ -4,7 +4,7 @@ import { getTranslations } from "next-intl/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ResetPasswordDialog } from "./reset-password-dialog";
 import { setUserActive } from "./actions";
@@ -21,10 +21,10 @@ export default async function UsersPage() {
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-2xl font-semibold">{t("title")}</h1>
-        <Button render={<Link href="/users/new" />}>
+        <Link href="/users/new" className={buttonVariants()}>
           <Plus />
           {t("new")}
-        </Button>
+        </Link>
       </div>
 
       <div className="overflow-x-auto rounded-md border">
@@ -52,9 +52,9 @@ export default async function UsersPage() {
                 <TableCell className="text-right">
                   <div className="flex flex-wrap justify-end gap-2">
                     <ResetPasswordDialog userId={u.id} userName={u.name} />
-                    <Button variant="ghost" size="sm" render={<Link href={`/users/${u.id}/edit`} />}>
+                    <Link href={`/users/${u.id}/edit`} className={buttonVariants({ variant: "ghost", size: "sm" })}>
                       {tCommon("edit")}
-                    </Button>
+                    </Link>
                     <form
                       action={async () => {
                         "use server";

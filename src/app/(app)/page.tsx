@@ -5,6 +5,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getBusinessDayRange, getBusinessMonthRange } from "@/lib/date-range";
+import { formatCurrency } from "@/lib/format";
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -30,7 +31,7 @@ export default async function DashboardPage() {
       _count: true,
     }),
     prisma.product.count({ where: { isActive: true } }),
-    prisma.product.count({ where: { isActive: true, currentStock: 0 } }),
+    prisma.product.count({ where: { isActive: true, storeStock: 0, homeStock: 0 } }),
     prisma.sale.findMany({
       orderBy: { createdAt: "desc" },
       take: 5,
@@ -38,10 +39,6 @@ export default async function DashboardPage() {
     }),
   ]);
 
-  const currencyFormatter = new Intl.NumberFormat(session.user.locale === "UZ_LATN" ? "uz-Latn" : "uz-Cyrl", {
-    style: "currency",
-    currency: "USD",
-  });
   const dateFormatter = new Intl.DateTimeFormat(session.user.locale === "UZ_LATN" ? "uz-Latn" : "uz-Cyrl", {
     dateStyle: "medium",
     timeStyle: "short",
@@ -50,21 +47,21 @@ export default async function DashboardPage() {
   const stats = [
     {
       key: "todaySales",
-      value: currencyFormatter.format(Number(todaySales._sum.totalAmount ?? 0)),
+      value: formatCurrency(Number(todaySales._sum.totalAmount ?? 0), session.user.locale),
       sub: t("salesCount", { count: todaySales._count }),
     },
     {
       key: "todayProfit",
-      value: currencyFormatter.format(Number(todaySales._sum.totalProfit ?? 0)),
+      value: formatCurrency(Number(todaySales._sum.totalProfit ?? 0), session.user.locale),
     },
     {
       key: "monthSales",
-      value: currencyFormatter.format(Number(monthSales._sum.totalAmount ?? 0)),
+      value: formatCurrency(Number(monthSales._sum.totalAmount ?? 0), session.user.locale),
       sub: t("salesCount", { count: monthSales._count }),
     },
     {
       key: "monthProfit",
-      value: currencyFormatter.format(Number(monthSales._sum.totalProfit ?? 0)),
+      value: formatCurrency(Number(monthSales._sum.totalProfit ?? 0), session.user.locale),
     },
     { key: "activeProducts", value: String(activeProductCount) },
     { key: "outOfStock", value: String(outOfStockCount) },
@@ -106,7 +103,7 @@ export default async function DashboardPage() {
                   <span>
                     {t("itemsCount", { count: sale.items.length })} · {sale.user.name}
                   </span>
-                  <span className="font-medium">{currencyFormatter.format(Number(sale.totalAmount))}</span>
+                  <span className="font-medium">{formatCurrency(sale.totalAmount.toString(), session.user.locale)}</span>
                 </li>
               ))}
             </ul>

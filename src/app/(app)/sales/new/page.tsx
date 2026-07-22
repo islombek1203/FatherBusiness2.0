@@ -5,10 +5,17 @@ import { SaleForm } from "../sale-form";
 
 export default async function NewSalePage() {
   const t = await getTranslations("sales");
+  // Every active product is selectable here, even ones currently out of
+  // stock at every location — `recordSale` independently re-checks the
+  // selected location's stock inside the transaction and rejects the sale
+  // with InsufficientStockError, so nothing is actually oversellable.
+  // Filtering the list itself by stock made freshly created/seeded products
+  // (zero stock until a purchase is recorded) invisible in this selector,
+  // which looked like the whole dropdown was broken.
   const products = await prisma.product.findMany({
-    where: { isActive: true, currentStock: { gt: 0 } },
+    where: { isActive: true },
     orderBy: { name: "asc" },
-    select: { id: true, name: true, sku: true, unit: true, currentStock: true, sellingPrice: true },
+    select: { id: true, name: true, sku: true, color: true, storeStock: true, homeStock: true, sellingPrice: true },
   });
 
   return (

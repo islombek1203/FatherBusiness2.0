@@ -19,7 +19,16 @@
     "language": "Til",
     "inactive": "Faol emas",
     "activate": "Faollashtirish",
-    "deactivate": "Faolsizlantirish"
+    "deactivate": "Faolsizlantirish",
+    "colors": {
+      "OQ": "Oq",
+      "QORA": "Qora",
+      "SARIQ": "Sariq"
+    },
+    "locations": {
+      "STORE": "Do‘kon",
+      "HOME": "Uy"
+    }
   },
   "nav": {
     "dashboard": "Boshqaruv paneli",
@@ -29,6 +38,8 @@
     "inventory": "Ombor",
     "purchases": "Xaridlar",
     "sales": "Sotuvlar",
+    "expenses": "Xarajatlar",
+    "expenseTypes": "Xarajat turlari",
     "reports": "Hisobotlar",
     "users": "Foydalanuvchilar",
     "settings": "Sozlamalar",
@@ -97,19 +108,28 @@
     "selectCategory": "Kategoriyani tanlang",
     "allCategories": "Barcha kategoriyalar",
     "unit": "O‘lchov birligi",
+    "color": "Rangi",
+    "selectColor": "Rangini tanlang",
     "sellingPrice": "Sotish narxi",
+    "initialStock": "Boshlang‘ich qoldiq",
     "stock": "Qoldiq",
+    "storeStock": "Do‘kon qoldig‘i",
+    "homeStock": "Uy qoldig‘i",
+    "totalStock": "Jami qoldiq",
+    "location": "Joylashuv",
+    "allLocations": "Barcha joylar",
     "import": "Import"
   },
   "inventory": {
     "title": "Ombor tarixi",
     "adjustStock": "Qoldiqni to‘g‘rilash",
-    "adjustStockDescription": "Joriy qoldiq: {current}. Yangi hisoblangan miqdorni kiriting.",
+    "adjustStockDescription": "Joriy qoldiq: {current} {unit}. Yangi hisoblangan miqdorni kiriting.",
     "newQuantity": "Yangi miqdor",
     "reason": "Sabab",
     "date": "Sana",
     "product": "Mahsulot",
     "type": "Turi",
+    "location": "Joylashuv",
     "quantityBefore": "Oldingi miqdor",
     "quantityAfter": "Keyingi miqdor",
     "user": "Foydalanuvchi",
@@ -139,6 +159,8 @@
     "items": "Mahsulotlar",
     "product": "Mahsulot",
     "selectProduct": "Mahsulotni tanlang",
+    "location": "Joylashuv",
+    "selectLocation": "Joylashuvni tanlang",
     "quantity": "Miqdor",
     "unitCost": "Birlik narxi",
     "addItem": "Qator qo‘shish",
@@ -155,6 +177,8 @@
     "items": "Mahsulotlar",
     "product": "Mahsulot",
     "selectProduct": "Mahsulotni tanlang",
+    "location": "Joylashuv",
+    "selectLocation": "Joylashuvni tanlang",
     "quantity": "Miqdor",
     "unitPrice": "Sotish narxi",
     "available": "Mavjud",
@@ -168,6 +192,25 @@
     "noSales": "Hozircha sotuvlar mavjud emas",
     "insufficientStock": "Tanlangan mahsulot(lar)dan omborda yetarli miqdor yo‘q"
   },
+  "expenseTypes": {
+    "title": "Xarajat turlari",
+    "new": "Yangi xarajat turi",
+    "edit": "Xarajat turini tahrirlash",
+    "name": "Nomi",
+    "description": "Tavsif",
+    "expenseCount": "Xarajatlar soni"
+  },
+  "expenses": {
+    "title": "Xarajatlar",
+    "new": "Yangi xarajat",
+    "type": "Turi",
+    "selectType": "Xarajat turini tanlang",
+    "amount": "Summa",
+    "note": "Izoh",
+    "date": "Sana",
+    "recordedBy": "Kiritdi",
+    "noExpenses": "Hozircha xarajatlar mavjud emas"
+  },
   "export": {
     "generatedAt": "Yaratilgan: {date}",
     "excel": "Excel",
@@ -175,7 +218,7 @@
   },
   "import": {
     "title": "Mahsulotlarni import qilish",
-    "description": "Excel (.xlsx) fayldan mahsulotlarni ommaviy qo‘shish yoki yangilash. Ustunlar tartibi: SKU, Nomi, Kategoriya, O‘lchov birligi, Qoldiq, Sotish narxi. Mavjud SKU yangilanadi, yangi SKU qo‘shiladi.",
+    "description": "Excel (.xlsx) fayldan mahsulotlarni ommaviy qo‘shish yoki yangilash. Ustunlar tartibi: SKU, Nomi, Kategoriya, Rangi, Do‘kon qoldig‘i, Uy qoldig‘i, Sotish narxi. Mavjud SKU yangilanadi, yangi SKU qo‘shiladi.",
     "downloadTemplate": "Namuna faylni yuklab olish",
     "file": "Excel fayl",
     "summary": "Qo‘shildi: {created}, yangilandi: {updated}",
@@ -199,7 +242,8 @@
     "product": "Mahsulot",
     "revenue": "Savdo",
     "profit": "Foyda",
-    "noData": "Tanlangan davr uchun ma’lumot yo‘q"
+    "noData": "Tanlangan davr uchun ma’lumot yo‘q",
+    "stockByLocation": "Joylashuv bo‘yicha qoldiq"
   },
   "users": {
     "title": "Foydalanuvchilar",

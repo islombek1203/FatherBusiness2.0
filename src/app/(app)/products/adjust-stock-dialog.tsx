@@ -17,7 +17,17 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import type { ActionResult } from "@/lib/action-result";
+import { UNIT_LABEL } from "@/lib/format";
+import { STOCK_LOCATIONS } from "@/lib/validation/product";
+import type { StockLocation } from "@/generated/prisma/enums";
 import { adjustProductStock } from "./actions";
 
 function SubmitButton() {
@@ -30,10 +40,23 @@ function SubmitButton() {
   );
 }
 
-export function AdjustStockDialog({ productId, currentStock }: { productId: string; currentStock: number }) {
+export function AdjustStockDialog({
+  productId,
+  storeStock,
+  homeStock,
+}: {
+  productId: string;
+  storeStock: number;
+  homeStock: number;
+}) {
   const t = useTranslations("inventory");
+  const tLocations = useTranslations("common.locations");
   const tErrors = useTranslations("formErrors");
   const [open, setOpen] = useState(false);
+  const [location, setLocation] = useState<StockLocation>("STORE");
+  const stockByLocation: Record<StockLocation, number> = { STORE: storeStock, HOME: homeStock };
+  const currentStock = stockByLocation[location];
+
   // A non-ok sentinel (rather than `{ ok: true }`) as the initial state, so
   // the very first render can't be mistaken for "the action just succeeded"
   // and close the dialog before the user has submitted anything.
@@ -65,13 +88,41 @@ export function AdjustStockDialog({ productId, currentStock }: { productId: stri
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{t("adjustStock")}</DialogTitle>
-          <DialogDescription>{t("adjustStockDescription", { current: currentStock })}</DialogDescription>
+          <DialogDescription>
+            {t("adjustStockDescription", { current: currentStock, unit: UNIT_LABEL })}
+          </DialogDescription>
         </DialogHeader>
         <form action={formAction} className="flex flex-col gap-4">
           <input type="hidden" name="productId" value={productId} />
           <div className="flex flex-col gap-2">
+            <Label htmlFor="location">{t("location")}</Label>
+            <Select
+              name="location"
+              value={location}
+              onValueChange={(value) => value && setLocation(value as StockLocation)}
+              items={STOCK_LOCATIONS.map((loc) => ({ value: loc, label: tLocations(loc) }))}
+            >
+              <SelectTrigger id="location" className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {STOCK_LOCATIONS.map((loc) => (
+                  <SelectItem key={loc} value={loc}>
+                    {tLocations(loc)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex flex-col gap-2">
             <Label htmlFor="quantityAfter">{t("newQuantity")}</Label>
             <Input
+              // Remount (rather than warn about updating an uncontrolled
+              // field's default) when the selected location or its stock
+              // changes: switching locations, or a successful adjustment
+              // revalidating the parent page while the dialog is still
+              // mid-close, both legitimately change this value post-mount.
+              key={`${location}-${currentStock}`}
               id="quantityAfter"
               name="quantityAfter"
               type="number"

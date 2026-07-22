@@ -64,8 +64,8 @@ test.describe("admin-only features", () => {
     // buffer, so build a minimal xlsx here rather than needing a fixture file.
     const workbook = new ExcelJS.Workbook();
     const sheet = workbook.addWorksheet("Products");
-    sheet.addRow(["SKU", "Name", "Category", "Unit", "Stock", "Selling price"]);
-    sheet.addRow([sku, `Imported Product ${stamp}`, `Imported Category ${stamp}`, "dona", 12, 4500]);
+    sheet.addRow(["SKU", "Name", "Category", "Color", "Store stock", "Home stock", "Selling price"]);
+    sheet.addRow([sku, `Imported Product ${stamp}`, `Imported Category ${stamp}`, "OQ", 12, 0, 4500]);
     const buffer = await workbook.xlsx.writeBuffer();
 
     await page.goto("/products/import");

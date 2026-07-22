@@ -52,7 +52,8 @@ test("full workflow: login through backup/restore", async ({ page }, testInfo) =
   await page.locator("#name").fill(productName);
   await page.locator("#categoryId").click();
   await page.getByRole("option", { name: categoryName }).click();
-  await page.locator("#unit").fill("dona");
+  await page.locator("#color").click();
+  await page.getByRole("option").first().click();
   await page.locator("#sellingPrice").fill("8000");
   await page.locator("form button[type=submit]").click();
   await expect(page).toHaveURL("/products");

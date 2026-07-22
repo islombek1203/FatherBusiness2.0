@@ -10,6 +10,7 @@ import type { ExportColumn } from "@/lib/export/types";
 type Row = {
   date: string;
   product: string;
+  location: string;
   quantity: number;
   unitPrice: string;
   lineTotal: string;
@@ -21,8 +22,9 @@ export async function GET(request: NextRequest) {
   const user = await requireUser();
   const format = request.nextUrl.searchParams.get("format") === "pdf" ? "pdf" : "xlsx";
 
-  const [t, tExport, locale] = await Promise.all([
+  const [t, tCommon, tExport, locale] = await Promise.all([
     getTranslations("sales"),
+    getTranslations("common"),
     getTranslations("export"),
     getLocale(),
   ]);
@@ -30,6 +32,7 @@ export async function GET(request: NextRequest) {
   const columns: ExportColumn<Row>[] = [
     { header: t("date"), accessor: (r) => r.date },
     { header: t("product"), accessor: (r) => r.product },
+    { header: t("location"), accessor: (r) => r.location },
     { header: t("quantity"), accessor: (r) => String(r.quantity) },
     { header: t("unitPrice"), accessor: (r) => r.unitPrice },
     { header: t("total"), accessor: (r) => r.lineTotal },
@@ -50,7 +53,8 @@ export async function GET(request: NextRequest) {
   const rows: Row[] = sales.flatMap((sale) =>
     sale.items.map((item) => ({
       date: dateFormatter.format(sale.createdAt),
-      product: item.product.name,
+      product: `${item.product.name} (${tCommon(`colors.${item.product.color}`)})`,
+      location: tCommon(`locations.${item.location}`),
       quantity: item.quantity,
       unitPrice: item.unitPrice.toString(),
       lineTotal: (item.quantity * Number(item.unitPrice)).toFixed(2),

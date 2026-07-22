@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Download } from "lucide-react";
 import { getTranslations } from "next-intl/server";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { RestoreForm } from "./restore-form";
 
@@ -18,10 +18,10 @@ export default async function SettingsPage() {
           <CardDescription>{t("backupDescription")}</CardDescription>
         </CardHeader>
         <CardContent>
-          <Button render={<Link href="/api/backup" prefetch={false} />}>
+          <Link href="/api/backup" prefetch={false} className={buttonVariants()}>
             <Download />
             {t("downloadBackup")}
-          </Button>
+          </Link>
         </CardContent>
       </Card>
 

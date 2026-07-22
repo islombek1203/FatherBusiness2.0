@@ -45,6 +45,7 @@ model User {
   inventoryHistory InventoryHistory[]
   purchases        Purchase[]
   sales            Sale[]
+  expenses         Expense[]
 
   @@map("users")
 }
@@ -128,22 +129,43 @@ model Supplier {
   @@map("suppliers")
 }
 
+// Fixed, non-extensible set — the UI never allows a custom color name.
+// Each color of a product is its own Product row (own SKU, own stock, own
+// history), not a shared "parent" with variant rows: that's what makes
+// per-color stock/purchase/sale isolation automatic (every relation already
+// scopes by productId) and makes "search by name" return every color for
+// free (they all just share `name`).
+enum ProductColor {
+  OQ
+  QORA
+  SARIQ
+}
+
+// Дўкон (STORE) / Уй (HOME) — the two places stock is physically kept.
+enum StockLocation {
+  STORE
+  HOME
+}
+
 model Product {
   id   String @id @default(cuid())
   sku  String @unique
   name String
 
   description String?
-  // Unit of measure shown in tables/forms (e.g. "dona", "kg", "litr").
-  unit        String  @default("dona")
+  color       ProductColor
 
-  sellingPrice Decimal @db.Decimal(14, 2)
+  sellingPrice      Decimal  @db.Decimal(14, 2)
   // Cost of a product = the price on its most recent purchase (see
   // src/lib/costing.ts). Null until the first purchase is recorded (Phase 3).
+  // Product-wide, not per-location — cost isn't a location concept.
   lastPurchasePrice Decimal? @db.Decimal(14, 2)
-  // Denormalized running total, kept in sync with InventoryHistory inside the
-  // same DB transaction as every stock-touching mutation.
-  currentStock Int @default(0)
+  // Denormalized running totals, kept in sync with InventoryHistory inside
+  // the same DB transaction as every stock-touching mutation. Two columns
+  // (not a join table) because the location set is fixed at two members —
+  // every stock read is a plain column access, no extra join.
+  storeStock        Int      @default(0)
+  homeStock         Int      @default(0)
 
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
@@ -157,6 +179,7 @@ model Product {
   saleItems     SaleItem[]
 
   @@index([categoryId])
+  @@index([name])
   @@map("products")
 }
 
@@ -172,6 +195,8 @@ enum InventoryChangeType {
 model InventoryHistory {
   id             String              @id @default(cuid())
   type           InventoryChangeType
+  location       StockLocation
+  // Before/after refer to `location`'s stock, not the product's combined total.
   quantityBefore Int
   quantityAfter  Int
   note           String?
@@ -215,12 +240,13 @@ model Purchase {
 }
 
 model PurchaseItem {
-  id       String  @id @default(cuid())
+  id       String        @id @default(cuid())
   quantity Int
+  location StockLocation
   // Price paid per unit in this purchase. Recording a new PurchaseItem for a
   // product is what updates Product.lastPurchasePrice (see
   // src/lib/purchases.ts) — this is the raw input to the costing function.
-  unitCost Decimal @db.Decimal(14, 2)
+  unitCost Decimal       @db.Decimal(14, 2)
 
   purchaseId String
   purchase   Purchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
@@ -250,13 +276,14 @@ model Sale {
 }
 
 model SaleItem {
-  id        String  @id @default(cuid())
+  id        String        @id @default(cuid())
   quantity  Int
-  unitPrice Decimal @db.Decimal(14, 2)
+  location  StockLocation
+  unitPrice Decimal       @db.Decimal(14, 2)
   // Snapshot of getProductCost() (src/lib/costing.ts) at the moment of sale.
   // Historical profit must stay fixed to what it was at the time of the
   // sale, even if a later purchase changes the product's current cost.
-  unitCost  Decimal @db.Decimal(14, 2)
+  unitCost  Decimal       @db.Decimal(14, 2)
 
   saleId String
   sale   Sale   @relation(fields: [saleId], references: [id], onDelete: Cascade)
@@ -267,4 +294,43 @@ model SaleItem {
   @@index([saleId])
   @@index([productId])
   @@map("sale_items")
+}
+
+// ---------------------------------------------------------------------------
+// Expenses
+// ---------------------------------------------------------------------------
+
+// Open-ended taxonomy (unlike ProductColor/StockLocation above, which are
+// fixed, closed sets): new expense types are added by inserting a row here —
+// no migration, no code change, matching how Category works for products.
+// Seeded with the three required types (see prisma/seed.ts); more can be
+// added later from the /expense-types UI without redesigning anything.
+model ExpenseType {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  expenses Expense[]
+
+  @@map("expense_types")
+}
+
+model Expense {
+  id        String   @id @default(cuid())
+  amount    Decimal  @db.Decimal(14, 2)
+  note      String?
+  createdAt DateTime @default(now())
+
+  expenseTypeId String
+  expenseType   ExpenseType @relation(fields: [expenseTypeId], references: [id], onDelete: Restrict)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@index([expenseTypeId])
+  @@index([createdAt])
+  @@map("expenses")
 }

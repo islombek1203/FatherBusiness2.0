@@ -6,13 +6,16 @@ import { buildExcelBuffer } from "@/lib/export/excel";
 import { buildTablePdfBuffer } from "@/lib/export/pdf";
 import { fileResponse, EXCEL_CONTENT_TYPE, PDF_CONTENT_TYPE } from "@/lib/export/response";
 import type { ExportColumn } from "@/lib/export/types";
+import { getTotalStock } from "@/lib/stock";
 
 type Row = {
   sku: string;
   name: string;
   category: string;
-  unit: string;
-  stock: number;
+  color: string;
+  storeStock: number;
+  homeStock: number;
+  totalStock: number;
   sellingPrice: string;
   lastPurchasePrice: string;
 };
@@ -31,9 +34,11 @@ export async function GET(request: NextRequest) {
     { header: t("sku"), accessor: (r) => r.sku },
     { header: t("name"), accessor: (r) => r.name },
     { header: t("category"), accessor: (r) => r.category },
-    { header: t("unit"), accessor: (r) => r.unit },
-    { header: t("stock"), accessor: (r) => String(r.stock) },
+    { header: t("color"), accessor: (r) => r.color },
+    { header: t("storeStock"), accessor: (r) => String(r.storeStock) },
+    { header: t("homeStock"), accessor: (r) => String(r.homeStock) },
     { header: t("sellingPrice"), accessor: (r) => r.sellingPrice },
+    { header: t("totalStock"), accessor: (r) => String(r.totalStock) },
   ];
 
   const products = await prisma.product.findMany({
@@ -44,8 +49,13 @@ export async function GET(request: NextRequest) {
     sku: p.sku,
     name: p.name,
     category: p.category.name,
-    unit: p.unit,
-    stock: p.currentStock,
+    // Raw enum value (not the translated label) so a downstream edit +
+    // re-import round-trips regardless of which locale exported the file —
+    // the import parser matches PRODUCT_COLORS keys, not display text.
+    color: p.color,
+    storeStock: p.storeStock,
+    homeStock: p.homeStock,
+    totalStock: getTotalStock(p),
     sellingPrice: p.sellingPrice.toString(),
     lastPurchasePrice: p.lastPurchasePrice?.toString() ?? "",
   }));

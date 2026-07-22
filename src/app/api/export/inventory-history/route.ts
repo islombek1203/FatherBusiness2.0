@@ -13,6 +13,7 @@ type Row = {
   date: string;
   product: string;
   type: string;
+  location: string;
   quantityBefore: number;
   quantityAfter: number;
   user: string;
@@ -23,8 +24,9 @@ export async function GET(request: NextRequest) {
   const user = await requireUser();
   const format = request.nextUrl.searchParams.get("format") === "pdf" ? "pdf" : "xlsx";
 
-  const [t, tExport, locale] = await Promise.all([
+  const [t, tCommon, tExport, locale] = await Promise.all([
     getTranslations("inventory"),
+    getTranslations("common"),
     getTranslations("export"),
     getLocale(),
   ]);
@@ -33,6 +35,7 @@ export async function GET(request: NextRequest) {
     { header: t("date"), accessor: (r) => r.date },
     { header: t("product"), accessor: (r) => r.product },
     { header: t("type"), accessor: (r) => r.type },
+    { header: t("location"), accessor: (r) => r.location },
     { header: t("quantityBefore"), accessor: (r) => String(r.quantityBefore) },
     { header: t("quantityAfter"), accessor: (r) => String(r.quantityAfter) },
     { header: t("user"), accessor: (r) => r.user },
@@ -52,8 +55,9 @@ export async function GET(request: NextRequest) {
 
   const rows: Row[] = entries.map((entry) => ({
     date: dateFormatter.format(entry.createdAt),
-    product: entry.product.name,
+    product: `${entry.product.name} (${tCommon(`colors.${entry.product.color}`)})`,
     type: t(`types.${entry.type}`),
+    location: tCommon(`locations.${entry.location}`),
     quantityBefore: entry.quantityBefore,
     quantityAfter: entry.quantityAfter,
     user: entry.user.name,
